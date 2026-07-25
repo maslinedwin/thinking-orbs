@@ -2,7 +2,7 @@
 // wave (listening). All draw a lat/long dot field with mode-specific
 // motion, then hand off to the shared z-sorted painter.
 
-import { angleDelta, hashD, makeProj, radiusScale } from './core';
+import { angleDelta, hashD, latLonLattice, makeProj, radiusScale } from './core';
 import type { ModeBuild } from './types';
 
 // --- the shared solver heartbeat (rubik) ------------------------------
@@ -110,31 +110,22 @@ export const buildGlobe: ModeBuild = (out, size, t, o) => {
   const rs = radiusScale(size, o.rsPow ?? 0.6);
   const dimBase = o.dimBase ?? 1;
 
-  const latRings = o.latRings ?? 17;
-  const lonDensity = o.lonDensity ?? 44;
-  for (let li = 0; li <= latRings; li++) {
-    const lat = -Math.PI / 2 + (li / latRings) * Math.PI;
-    const cosLat = Math.cos(lat);
-    const sinLat = Math.sin(lat);
-    const lonCount = Math.max(1, Math.round(Math.abs(cosLat) * lonDensity));
-    for (let lj = 0; lj < lonCount; lj++) {
-      const lon = (lj / lonCount) * 2 * Math.PI;
-      const [px, py, z] = pt(cosLat * Math.cos(lon), sinLat, cosLat * Math.sin(lon));
-      const depth = (z + 1) / 2;
-      // the scan: a moving meridian read as a size ripple, not a shine
-      const d = angleDelta(lon + t * spin, scan);
-      const boost = Math.exp(-(d * d) / 0.18) * Math.max(0, z);
-      out.add(
-        px,
-        py,
-        z,
-        ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth + (o.rBoost ?? 1) * boost) * rs,
-        (o.inkFar ?? 0.62) - (o.inkSpan ?? 0.54) * depth,
-        // dimBase < 1 fades un-scanned dots so the meridian reads clearly
-        dimBase + (1 - dimBase) * Math.min(1, boost)
-      );
-    }
-  }
+  latLonLattice(o.latRings ?? 17, o.lonDensity ?? 44, (ux, uy, uz, _lat, lon) => {
+    const [px, py, z] = pt(ux, uy, uz);
+    const depth = (z + 1) / 2;
+    // the scan: a moving meridian read as a size ripple, not a shine
+    const d = angleDelta(lon + t * spin, scan);
+    const boost = Math.exp(-(d * d) / 0.18) * Math.max(0, z);
+    out.add(
+      px,
+      py,
+      z,
+      ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth + (o.rBoost ?? 1) * boost) * rs,
+      (o.inkFar ?? 0.62) - (o.inkSpan ?? 0.54) * depth,
+      // dimBase < 1 fades un-scanned dots so the meridian reads clearly
+      dimBase + (1 - dimBase) * Math.min(1, boost)
+    );
+  });
 };
 
 // --- Rubik: bands twist in quarter turns, scramble → solve — solving --

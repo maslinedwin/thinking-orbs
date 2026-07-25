@@ -22,7 +22,7 @@ import { getLut } from './color';
 import { sharedClock, subscribe as subscribeFrames } from './driver';
 import { DotBuffer } from './engine/buffer';
 import { MODE_BUILDS } from './engine/registry';
-import { resolvePreset } from './presets';
+import { PROGRESS_MODES, resolvePreset } from './presets';
 import { renderCanvas2D } from './render/canvas2d';
 import { useReducedMotion, useResolvedDark } from './theme';
 import type { OrbState, ThinkingOrbProps } from './types';
@@ -38,7 +38,12 @@ const LABELS: Record<string, string> = {
   analyzing: 'Analysing…',
   booking: 'Booking…',
   streaming: 'Streaming…',
-  success: 'Done'
+  success: 'Done',
+  connecting: 'Connecting…',
+  waiting: 'Waiting…',
+  reasoning: 'Reasoning…',
+  queuing: 'Queued…',
+  reading: 'Reading…'
 };
 
 /** Live device pixel ratio, capped at 2. */
@@ -57,6 +62,7 @@ export function ThinkingOrb({
   once = false,
   crossfade = 300,
   batchPaths = false,
+  progress,
   style,
   'aria-label': ariaLabel,
   ...rest
@@ -65,10 +71,42 @@ export function ThinkingOrb({
   const dark = useResolvedDark(theme, ref);
   const reduced = useReducedMotion();
 
+  if (process.env.NODE_ENV !== 'production' && progress !== undefined) {
+    const { mode } = resolvePreset(state, size);
+    if (!PROGRESS_MODES.has(mode)) {
+      console.warn(
+        `[@nowah/orbs] state "${state}" (mode "${mode}") ignores \`progress\`; ` +
+          `states backed by ${Array.from(PROGRESS_MODES).join(', ')} express it.`
+      );
+    }
+  }
+
   // Everything the frame loop reads lives in a ref, so prop changes don't
   // restart the loop or resize (and clear) the canvas.
-  const live = useRef({ state, speed, paused, once, crossfade, batchPaths, palette, ramp, dark });
-  live.current = { state, speed, paused, once, crossfade, batchPaths, palette, ramp, dark };
+  const live = useRef({
+    state,
+    speed,
+    paused,
+    once,
+    crossfade,
+    batchPaths,
+    palette,
+    ramp,
+    dark,
+    progress
+  });
+  live.current = {
+    state,
+    speed,
+    paused,
+    once,
+    crossfade,
+    batchPaths,
+    palette,
+    ramp,
+    dark,
+    progress
+  };
 
   // Per-instance animation time, and the outgoing state being cross-faded out.
   const clock = useRef({ t: 0, seeded: false });
@@ -119,7 +157,7 @@ export function ThinkingOrb({
         const pOut = resolvePreset(out.state, size);
         const b = bufB.current;
         b.reset();
-        MODE_BUILDS[pOut.mode](b, size, out.t * pOut.speed, pOut.opts);
+        MODE_BUILDS[pOut.mode](b, size, out.t * pOut.speed, pOut.opts, l.progress);
         renderCanvas2D(ctx, b, lut, l.dark, {
           rMin: pOut.opts.rMin,
           fade: out.mix,
@@ -132,7 +170,7 @@ export function ThinkingOrb({
       a.reset();
       let t = clock.current.t;
       if (l.once && p.cycle !== undefined) t = Math.min(t, p.cycle / p.speed);
-      MODE_BUILDS[p.mode](a, size, t * p.speed, p.opts);
+      MODE_BUILDS[p.mode](a, size, t * p.speed, p.opts, l.progress);
       renderCanvas2D(ctx, a, lut, l.dark, {
         rMin: p.opts.rMin,
         fade: out ? 1 - out.mix : 1,

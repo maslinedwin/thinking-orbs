@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MAX_SIZE, MIN_SIZE, ORB_STATES, resolvePreset } from '../presets';
+import {
+  MAX_SIZE,
+  MIN_SIZE,
+  ORB_STATES,
+  PROGRESS_MODES,
+  resolvePreset,
+  STATE_ANCHORS
+} from '../presets';
 
 const SIX = ['working', 'searching', 'solving', 'listening', 'composing', 'shaping'] as const;
 
@@ -133,5 +140,50 @@ describe('once support', () => {
   it('only states with a natural cycle declare one', () => {
     expect(resolvePreset('success', 64).cycle).toBeGreaterThan(0);
     expect(resolvePreset('working', 64).cycle).toBeUndefined();
+  });
+});
+
+describe('anchor hygiene', () => {
+  // `lerpExtra` treats a key present at only one anchor as constant across all
+  // sizes, so a 20px-only override silently applies at 64px too. That cost
+  // `queuing@64` 85 dots during development — this test makes it impossible to
+  // reintroduce.
+  it('both anchors declare symmetric extra keys', () => {
+    for (const state of ORB_STATES) {
+      const { a20, a64 } = STATE_ANCHORS[state];
+      const k20 = Object.keys(a20.extra ?? {}).sort();
+      const k64 = Object.keys(a64.extra ?? {}).sort();
+      expect(k20, `${state}: extra keys must match at both anchors`).toEqual(k64);
+    }
+  });
+
+  it('every state has positive speed, count and size at both anchors', () => {
+    for (const state of ORB_STATES) {
+      for (const a of [STATE_ANCHORS[state].a20, STATE_ANCHORS[state].a64]) {
+        // log-space interpolation means a zero or negative here yields
+        // -Infinity / NaN rather than an obvious failure
+        expect(a.speed, `${state} speed`).toBeGreaterThan(0);
+        expect(a.count, `${state} count`).toBeGreaterThan(0);
+        expect(a.size, `${state} size`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('every state resolves to a registered mode', () => {
+    for (const state of ORB_STATES) {
+      expect(resolvePreset(state, 64).mode).toBeTruthy();
+    }
+  });
+});
+
+describe('progress modes', () => {
+  it('declares exactly the modes that read progress', () => {
+    expect([...PROGRESS_MODES].sort()).toEqual(['funnel', 'raster']);
+  });
+
+  it('the progress-capable states map to those modes', () => {
+    expect(PROGRESS_MODES.has(resolvePreset('queuing', 64).mode)).toBe(true);
+    expect(PROGRESS_MODES.has(resolvePreset('reading', 64).mode)).toBe(true);
+    expect(PROGRESS_MODES.has(resolvePreset('working', 64).mode)).toBe(false);
   });
 });

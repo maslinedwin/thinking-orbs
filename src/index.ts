@@ -12,6 +12,7 @@ export {
   MIN_SIZE,
   type ModeKey,
   ORB_STATES,
+  PROGRESS_MODES,
   type Resolved,
   resolvePreset,
   STATE_TO_MODE

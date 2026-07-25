@@ -44,7 +44,61 @@ const KNOBS: Record<string, [min: number, max: number, step: number]> = {
   wobMul: [0, 4, 0.01],
   spread: [0.2, 3, 0.005],
   rMin: [0, 2, 0.05],
-  rsPow: [0, 1.5, 0.01]
+  rsPow: [0, 1.5, 0.01],
+
+  // batch-1 modes. A knob missing from this map simply won't render, so new
+  // opt names have to be added here to be tunable.
+  // route
+  arcN: [4, 80, 1],
+  pool: [6, 60, 1],
+  rArc: [0, 4, 0.01],
+  rHead: [0, 5, 0.01],
+  rEnd: [0, 6, 0.01],
+  inkArc: [0, 1, 0.01],
+  trailA: [0, 1, 0.01],
+  headWidth: [0.02, 0.6, 0.005],
+  lift: [0, 0.4, 0.005],
+  // sonar
+  ringN: [1, 10, 1],
+  ringDots: [4, 90, 1],
+  reach: [0.3, 1.2, 0.01],
+  period: [0.2, 4, 0.01],
+  rTaper: [0, 2, 0.01],
+  rCore: [0, 5, 0.01],
+  rPulse: [0, 4, 0.01],
+  inkNear: [0, 1, 0.01],
+  ringA: [0, 1, 0.01],
+  fade: [0, 1, 0.01],
+  // graph
+  nodeN: [4, 60, 1],
+  edgeN: [2, 16, 1],
+  trail: [1, 12, 1],
+  cometLen: [0.05, 1, 0.01],
+  rGlow: [0, 5, 0.01],
+  inkNode: [0, 1, 0.01],
+  inkGlow: [0, 1, 0.01],
+  nodeA: [0, 1, 0.01],
+  // funnel
+  partN: [2, 140, 1],
+  shellN: [3, 60, 1],
+  shellRings: [2, 16, 1],
+  waist: [0.02, 0.6, 0.01],
+  flowRate: [0.05, 2, 0.01],
+  rShell: [0, 3, 0.01],
+  rHot: [0, 3, 0.01],
+  inkShell: [0, 1, 0.01],
+  inkPart: [0, 1, 0.01],
+  shellA: [0, 1, 0.01],
+  // raster
+  cols: [2, 40, 1],
+  rows: [2, 40, 1],
+  inset: [0, 0.35, 0.005],
+  band: [0.2, 6, 0.05],
+  cursorRate: [0, 12, 0.1],
+  inkAhead: [0, 1, 0.01],
+  inkRead: [0, 1, 0.01],
+  inkActive: [0, 1, 0.01],
+  baseA: [0, 1, 0.01]
 };
 
 export function TuningPanel({

@@ -12,13 +12,19 @@ export interface ModeOpts {
 const COUNT_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ['latRings', 'lonDensity'],
   ['rings', 'lonDensity'],
-  ['lanes', 'segs']
+  ['lanes', 'segs'],
+  ['cols', 'rows'],
+  ['shellRings', 'shellN']
 ];
-const COUNT_KEYS = ['orbitN', 'ghostN'] as const;
+const COUNT_KEYS = ['orbitN', 'ghostN', 'arcN', 'ringDots', 'nodeN', 'partN'] as const;
 const ICON_DENSITY_KEYS = ['iconD'] as const;
 
 // Every key that sets a dot's rendered radius — scaling all of them keeps
 // a dot's near/far falloff intact while shrinking or growing the mark.
+//
+// NOTE: a new mode's radius/count opt names MUST be registered here (and in
+// COUNT_* above), or the preset `count`/`size` multipliers silently skip them
+// and size interpolation looks broken for that one mode.
 const RADIUS_KEYS = [
   'rBase',
   'rDepth',
@@ -26,7 +32,21 @@ const RADIUS_KEYS = [
   'rDot',
   'ghostR',
   'partR',
-  'partRDepth'
+  'partRDepth',
+  'rArc',
+  'rHead',
+  'rEnd',
+  'rCore',
+  'rPulse',
+  'rTaper',
+  'rNode',
+  'rGlow',
+  'rTravel',
+  'rShell',
+  'rPart',
+  'rHot',
+  'rEdge',
+  'rEdgeHot'
 ] as const;
 
 export function scaleCounts(opts: ModeOpts, scale: number): ModeOpts {
@@ -123,5 +143,97 @@ export const BASE_PROFILES: Record<string, ModeOpts> = {
     rDot: 0.021,
     iconD: 1,
     rMin: 0.25
+  },
+  route: {
+    latRings: 17,
+    lonDensity: 44,
+    arcN: 26,
+    pool: 24,
+    rBase: 0.6,
+    rDepth: 1.7,
+    rArc: 1.25,
+    rHead: 1.9,
+    rEnd: 2.4,
+    inkFar: 0.66,
+    inkSpan: 0.42,
+    inkArc: 0.1,
+    dimBase: 0.55,
+    trailA: 1,
+    headWidth: 0.16,
+    lift: 0.09,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  sonar: {
+    ringN: 4,
+    ringDots: 34,
+    reach: 0.9,
+    period: 1.6,
+    spin: 0.25,
+    rBase: 2.3,
+    rTaper: 1.0,
+    rCore: 2.3,
+    rPulse: 1.1,
+    inkNear: 0.08,
+    inkSpan: 0.5,
+    ringA: 1,
+    fade: 0.3,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  graph: {
+    nodeN: 22,
+    edgeN: 5,
+    edgeSeg: 5,
+    trail: 4,
+    spin: 0.16,
+    cometLen: 0.32,
+    rNode: 1.35,
+    rDepth: 1.1,
+    rGlow: 1.9,
+    rTravel: 1.6,
+    rEdge: 0.5,
+    rEdgeHot: 0.5,
+    inkNode: 0.5,
+    inkGlow: 0.44,
+    inkEdge: 0.66,
+    inkEdgeHot: 0.3,
+    nodeA: 0.92,
+    edgeA: 0.85,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  funnel: {
+    partN: 60,
+    shellN: 22,
+    shellRings: 7,
+    waist: 0.16,
+    spin: 0.2,
+    flowRate: 0.5,
+    rShell: 0.85,
+    rDepth: 1.5,
+    rPart: 1.45,
+    rHot: 0.6,
+    inkShell: 0.66,
+    inkPart: 0.2,
+    shellA: 0.88,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  raster: {
+    cols: 12,
+    rows: 12,
+    inset: 0.13,
+    period: 1.35,
+    band: 1.4,
+    cursorRate: 4.2,
+    rBase: 1.6,
+    rActive: 1.7,
+    inkAhead: 0.62,
+    inkRead: 0.36,
+    inkActive: 0.06,
+    baseA: 0.9,
+    rsPow: 0.6,
+    rMin: 0.3
   }
 };

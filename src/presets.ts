@@ -11,7 +11,26 @@ import type { ModeOpts } from './engine/profiles';
 import { BASE_PROFILES, scaleCounts, scaleRadii } from './engine/profiles';
 import type { OrbState } from './types';
 
-export type ModeKey = 'orbits' | 'globe' | 'rubik' | 'wave' | 'ribbon' | 'morph';
+export type ModeKey =
+  | 'orbits'
+  | 'globe'
+  | 'rubik'
+  | 'wave'
+  | 'ribbon'
+  | 'morph'
+  | 'route'
+  | 'sonar'
+  | 'graph'
+  | 'funnel'
+  | 'raster';
+
+/**
+ * Modes that read the `progress` prop. Everything else ignores it — the
+ * workbench uses this to decide when to show the progress slider, and
+ * `ThinkingOrb` uses it to warn in dev if `progress` is passed to a state
+ * that can't express it.
+ */
+export const PROGRESS_MODES: ReadonlySet<ModeKey> = new Set<ModeKey>(['funnel', 'raster']);
 
 interface Preset {
   speed: number;
@@ -110,8 +129,67 @@ const STATES: Record<OrbState, StatePreset> = {
     cycle: rubikCycle(5),
     a64: { speed: 1.6, count: 0.35, size: 1.05, extra: { moveCount: 5 } },
     a20: { speed: 1.7, count: 0.088, size: 1.9, extra: { moveCount: 5 } }
+  },
+
+  // --- batch 1: new engine modes -------------------------------------
+  // First-pass tunings, meant to be dialled in the workbench and baked.
+
+  /** A great-circle arc traces between two points over a held-back globe. */
+  connecting: {
+    mode: 'route',
+    // dimBase is alpha on the globe lattice, so it dominates this mode's
+    // perceived weight. At 0.22 the orb measured 0.42x the ink of the other
+    // states and read as a faint smudge next to them.
+    a64: { speed: 0.62, count: 0.42, size: 1.15, extra: { dimBase: 0.52, lift: 0.09 } },
+    // 20px: the globe recedes a little further so the arc still separates, but
+    // not so far that the mark hollows out
+    a20: { speed: 0.72, count: 0.115, size: 1.7, extra: { dimBase: 0.44, lift: 0.13 } }
+  },
+
+  /** Concentric rings expand outward and fade — pinging, awaiting a reply. */
+  waiting: {
+    mode: 'sonar',
+    a64: { speed: 1.0, count: 1.55, size: 1, extra: { ringN: 4, rTaper: 1.0 } },
+    a20: { speed: 1.05, count: 0.5, size: 1.7, extra: { ringN: 3, rTaper: 0.8 } }
+  },
+
+  /** An activation hops node→node across a constellation — chain of thought. */
+  reasoning: {
+    mode: 'graph',
+    a64: { speed: 1.55, count: 1.25, size: 1, extra: { trail: 4, edgeN: 5, edgeSeg: 7 } },
+    // fewer nodes but bigger, or 20px turns into indistinct grey speckle
+    a20: { speed: 1.5, count: 0.6, size: 1.9, extra: { trail: 3, edgeN: 4, edgeSeg: 3 } }
+  },
+
+  /** Dots fall through an hourglass waist and pile up. Accepts `progress`. */
+  queuing: {
+    mode: 'funnel',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { waist: 0.16, shellRings: 7, shellN: 22 } },
+    // the shell is explicitly thinned at this anchor: sqrt-scaling
+    // shellRings×shellN left the silhouette eating ~70% of the small anchor's
+    // dot budget, crowding out the particles that carry the actual motion
+    a20: {
+      speed: 1.1,
+      count: 0.26,
+      size: 1.65,
+      extra: { waist: 0.22, shellRings: 5, shellN: 7 }
+    }
+  },
+
+  /** Flat lattice with a row-by-row sweep. Accepts `progress`. */
+  reading: {
+    mode: 'raster',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { band: 1.4, inset: 0.13 } },
+    a20: { speed: 1.05, count: 0.25, size: 1.7, extra: { band: 1.1, inset: 0.1 } }
   }
 };
+
+/**
+ * The raw anchor table. Exposed for tests and tooling — in particular the test
+ * that asserts both anchors of a state declare the SAME `extra` keys, which
+ * `lerpExtra` below depends on.
+ */
+export const STATE_ANCHORS: Readonly<Record<OrbState, StatePreset>> = STATES;
 
 export const STATE_TO_MODE = Object.fromEntries(
   Object.entries(STATES).map(([k, v]) => [k, v.mode])
@@ -138,6 +216,17 @@ const COUNT_T_MAX = 1.6;
 const logLerp = (a: number, b: number, t: number) =>
   Math.exp(Math.log(a) + (Math.log(b) - Math.log(a)) * t);
 
+/**
+ * Interpolate the `extra` opts between the two anchors.
+ *
+ * IMPORTANT: a key present at only ONE anchor is treated as constant across all
+ * sizes — it CANNOT fall back to the base profile, because that value has
+ * already been count/radius-scaled by the time we get here and re-deriving it
+ * would undo that scaling. So a 20px-only override silently applies at 64px
+ * too, which is a genuinely easy mistake to make (it cost `queuing@64` 85 dots
+ * during development). Declare every `extra` key at BOTH anchors; the
+ * "anchors declare symmetric extra keys" test enforces it.
+ */
 function lerpExtra(
   a: ModeOpts | undefined,
   b: ModeOpts | undefined,

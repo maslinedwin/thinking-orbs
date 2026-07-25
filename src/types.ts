@@ -18,6 +18,13 @@ import type { Palette, PaletteName, Ramp } from './color';
  * - `booking`   — fewer, slower, decisive turns; reads as locking in
  * - `streaming` — continuous directional flow
  * - `success`   — one-shot; scrambles then clicks back solved (pair with `once`)
+ *
+ * And five on modes of their own:
+ * - `connecting` — a great-circle arc traces between two points on a globe
+ * - `waiting`    — concentric rings expand outward and fade
+ * - `reasoning`  — an activation hops node→node across a constellation
+ * - `queuing`    — dots fall through an hourglass waist (accepts `progress`)
+ * - `reading`    — a flat lattice sweeps row by row (accepts `progress`)
  */
 export type OrbState =
   | 'working'
@@ -30,7 +37,12 @@ export type OrbState =
   | 'analyzing'
   | 'booking'
   | 'streaming'
-  | 'success';
+  | 'success'
+  | 'connecting'
+  | 'waiting'
+  | 'reasoning'
+  | 'queuing'
+  | 'reading';
 
 /**
  * Rendered size in CSS pixels. Any value in 12–256 works; 20 and 64 are the
@@ -100,6 +112,15 @@ export interface ThinkingOrbProps extends Omit<CanvasHTMLAttributes<HTMLCanvasEl
    * @default false
    */
   once?: boolean;
+
+  /**
+   * Determinate progress, 0–1. Omit for an indeterminate loop.
+   *
+   * Only states whose mode is in `PROGRESS_MODES` express it — `queuing` maps
+   * it to the pile height, `reading` to the sweep position. Passing it to any
+   * other state is ignored (and warns in dev). Values out of range clamp.
+   */
+  progress?: number;
 
   /**
    * Cross-fade duration in ms when `state` changes. 0 disables (hard cut, the

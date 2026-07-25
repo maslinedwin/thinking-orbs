@@ -9,7 +9,9 @@ import {
   type OrbState,
   PALETTES,
   type PaletteName,
+  PROGRESS_MODES,
   type Ramp,
+  resolvePreset,
   ThinkingOrb
 } from '@nowah/orbs';
 import { useEffect, useMemo, useState } from 'react';
@@ -38,6 +40,11 @@ export function App() {
   const [customRamp, setCustomRamp] = useState<Ramp | null>(null);
   const [autoCycle, setAutoCycle] = useState(false);
   const [showTuning, setShowTuning] = useState(false);
+  // `null` = indeterminate (prop omitted); a number = determinate
+  const [progress, setProgress] = useState<number | null>(null);
+
+  // only some modes can express progress; the control hides for the rest
+  const canProgress = PROGRESS_MODES.has(resolvePreset(state, size).mode);
 
   // The ramp editor edits whichever substrate is showing.
   const brandRamp = dark ? PALETTES.green.dark : PALETTES.green.light;
@@ -61,10 +68,11 @@ export function App() {
     if (palette !== 'green') props.push(`palette="${palette}"`);
     if (speed !== 1) props.push(`speed={${speed}}`);
     if (once) props.push('once');
+    if (canProgress && progress !== null) props.push(`progress={${progress.toFixed(2)}}`);
     if (crossfade !== 300) props.push(`crossfade={${crossfade}}`);
     if (batchPaths) props.push('batchPaths');
     return `import { ThinkingOrb } from '@nowah/orbs';\n\n<ThinkingOrb ${props.join(' ')} />`;
-  }, [state, size, palette, speed, once, crossfade, batchPaths]);
+  }, [state, size, palette, speed, once, crossfade, batchPaths, canProgress, progress]);
 
   return (
     <main className="wb">
@@ -118,7 +126,13 @@ export function App() {
             {state} · {size}px · {palette}
             {ramp ? ' · custom ramp' : ''}
           </span>
-          <ThinkingOrb state={state} size={size} once={once} {...shared} />
+          <ThinkingOrb
+            state={state}
+            size={size}
+            once={once}
+            progress={canProgress && progress !== null ? progress : undefined}
+            {...shared}
+          />
         </div>
 
         <div className="wb-row" style={{ marginTop: 16 }}>
@@ -141,6 +155,23 @@ export function App() {
             onChange={setCrossfade}
             suffix="ms"
           />
+          {canProgress ? (
+            <div className="wb-field" style={{ width: 210 }}>
+              <Slider
+                label="progress"
+                value={progress ?? 0}
+                min={0}
+                max={1}
+                step={0.01}
+                onChange={setProgress}
+              />
+              <Toggle
+                label={progress === null ? 'indeterminate' : 'determinate'}
+                on={progress !== null}
+                onToggle={() => setProgress((p) => (p === null ? 0.4 : null))}
+              />
+            </div>
+          ) : null}
         </div>
 
         <div className="wb-row" style={{ marginTop: 14, alignItems: 'flex-end' }}>
