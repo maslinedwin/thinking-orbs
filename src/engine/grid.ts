@@ -8,7 +8,7 @@
 // faint, dots behind are mid ("already read"), dots in the sweep band are hot.
 // That three-tier ink split is what makes progress legible without motion.
 
-import { clamp01, radiusScale } from './core';
+import { clamp01, hashD, radiusScale } from './core';
 import type { ModeBuild } from './types';
 
 export const buildRaster: ModeBuild = (out, size, t, o, progress) => {
@@ -67,6 +67,76 @@ export const buildRaster: ModeBuild = (out, size, t, o, progress) => {
         (rBase + rActive * hot) * rs,
         ink - (ink - inkActive) * hot,
         (o.baseA ?? 0.9) + (1 - (o.baseA ?? 0.9)) * Math.max(read ? 0.5 : 0, hot)
+      );
+    }
+  }
+};
+
+// --- Cascade: dots fill in line by line, wrapping — drafting ------------
+//
+// Distinct from `raster` in the way that matters: raster sweeps a band over a
+// grid that is always fully present, whereas cascade REVEALS — cells ahead of
+// the write head aren't drawn at all. Rows also get ragged right edges from a
+// per-row hash, so it reads as prose being written rather than a block filling.
+
+export const buildCascade: ModeBuild = (out, size, t, o, progress) => {
+  const cols = Math.max(2, Math.round(o.cols ?? 14));
+  const rows = Math.max(2, Math.round(o.rows ?? 9));
+  const rs = radiusScale(size, o.rsPow ?? 0.6);
+
+  const inset = (o.inset ?? 0.12) * size;
+  const w = size - inset * 2;
+  const h = size - inset * 2;
+  const stepX = cols > 1 ? w / (cols - 1) : 0;
+  const stepY = rows > 1 ? h / (rows - 1) : 0;
+
+  // ragged line lengths — a full rectangle reads as a grid, not as text
+  const ragged = o.ragged ?? 0.42;
+  const lineLen = (r: number) => Math.max(2, Math.round(cols * (1 - ragged * hashD(r, 4.4))));
+
+  let total = 0;
+  for (let r = 0; r < rows; r++) total += lineLen(r);
+
+  // How much of the page is written, 0-1.
+  //
+  // This mode draws NOTHING ahead of the head, so a fraction of zero renders a
+  // completely empty orb. Two guards, because a loading indicator must never
+  // look blank or blink:
+  //   - the indeterminate cycle starts at `floorFrac` rather than 0, so it
+  //     reads as continuing to write rather than popping from an empty page
+  //   - the cell count is floored outright, which also covers `progress={0}`
+  let frac: number;
+  if (progress === undefined) {
+    const cyc = (t / (o.period ?? 2.6)) % 1;
+    const hold = o.holdFrac ?? 0.22;
+    const floorFrac = o.floorFrac ?? 0.14;
+    frac = floorFrac + (1 - floorFrac) * Math.min(1, cyc / (1 - hold));
+  } else {
+    frac = clamp01(progress);
+  }
+  const written = Math.max(o.minCells ?? 7, frac * total);
+
+  const rBase = o.rBase ?? 1.55;
+  const rHead = o.rHead ?? 1.5;
+  const inkWritten = o.inkWritten ?? 0.5;
+  const inkHead = o.inkHead ?? 0.06;
+
+  let idx = 0;
+  for (let r = 0; r < rows; r++) {
+    const len = lineLen(r);
+    for (let c = 0; c < len; c++, idx++) {
+      const behind = written - idx;
+      // nothing ahead of the head is drawn — that's the reveal
+      if (behind <= 0) continue;
+      // the newest few cells are hot, fading back to written ink
+      const hot = behind < 2.5 ? 1 - behind / 2.5 : 0;
+      out.add(
+        inset + c * stepX,
+        inset + r * stepY,
+        hot > 0.4 ? 1 : 0,
+        (rBase + rHead * hot) * rs,
+        inkWritten - (inkWritten - inkHead) * hot,
+        o.dotA ?? 0.95
       );
     }
   }

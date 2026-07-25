@@ -7,6 +7,7 @@
 // legal values. (Upstream's own demo worked around the limit by rendering
 // size 64 and CSS-scaling it to 56px.)
 
+import { shatterCycle } from './engine/burst';
 import type { ModeOpts } from './engine/profiles';
 import { BASE_PROFILES, scaleCounts, scaleRadii } from './engine/profiles';
 import type { OrbState } from './types';
@@ -22,7 +23,12 @@ export type ModeKey =
   | 'sonar'
   | 'graph'
   | 'funnel'
-  | 'raster';
+  | 'raster'
+  | 'vortex'
+  | 'helix'
+  | 'cluster'
+  | 'cascade'
+  | 'shatter';
 
 /**
  * Modes that read the `progress` prop. Everything else ignores it — the
@@ -30,7 +36,12 @@ export type ModeKey =
  * `ThinkingOrb` uses it to warn in dev if `progress` is passed to a state
  * that can't express it.
  */
-export const PROGRESS_MODES: ReadonlySet<ModeKey> = new Set<ModeKey>(['funnel', 'raster']);
+export const PROGRESS_MODES: ReadonlySet<ModeKey> = new Set<ModeKey>([
+  'funnel',
+  'raster',
+  'vortex',
+  'cascade'
+]);
 
 interface Preset {
   speed: number;
@@ -181,6 +192,81 @@ const STATES: Record<OrbState, StatePreset> = {
     mode: 'raster',
     a64: { speed: 1.0, count: 1, size: 1, extra: { band: 1.4, inset: 0.13 } },
     a20: { speed: 1.05, count: 0.25, size: 1.7, extra: { band: 1.1, inset: 0.1 } }
+  },
+
+  // --- batch 2: new engine modes -------------------------------------
+
+  /** Dots spiral inward and accrete at the core. Accepts `progress`. */
+  gathering: {
+    mode: 'vortex',
+    a64: { speed: 1.15, count: 1, size: 1, extra: { turns: 2.2, disk: 0.18, arms: 3, tilt: 1.15 } },
+    // fewer turns at 20px — a tight spiral there just reads as a blurred ring
+    a20: {
+      speed: 1.3,
+      count: 0.3,
+      size: 1.9,
+      extra: { turns: 1.6, disk: 0.22, arms: 2, tilt: 1.05 }
+    }
+  },
+
+  /** Two counter-rotating strands with rungs — two things staying in step. */
+  syncing: {
+    mode: 'helix',
+    a64: { speed: 1.0, count: 1.15, size: 1, extra: { pitch: 2.6, rungEvery: 5, taper: 0.45 } },
+    a20: { speed: 1.1, count: 0.3, size: 1.85, extra: { pitch: 1.7, rungEvery: 4, taper: 0.3 } }
+  },
+
+  /** A field splits into groups, one wins, then re-merges. */
+  comparing: {
+    mode: 'cluster',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { groups: 3, spread: 0.62 } },
+    a20: { speed: 1.05, count: 0.24, size: 1.85, extra: { groups: 3, spread: 0.55 } }
+  },
+
+  /** Dots fill in line by line with ragged edges. Accepts `progress`. */
+  drafting: {
+    mode: 'cascade',
+    a64: { speed: 1.0, count: 1.35, size: 1, extra: { ragged: 0.42, inset: 0.12 } },
+    a20: { speed: 1.05, count: 0.38, size: 1.8, extra: { ragged: 0.34, inset: 0.1 } }
+  },
+
+  /** Bursts outward, hangs, then snaps back together — retry and recover. */
+  retrying: {
+    mode: 'shatter',
+    a64: {
+      speed: 1.0,
+      count: 1,
+      size: 1,
+      extra: { blast: 0.95, settle: 1, farK: 0.45, reach: 0.44, fall: 0 }
+    },
+    a20: {
+      speed: 1.05,
+      count: 0.16,
+      size: 1.8,
+      extra: { blast: 0.8, settle: 1, farK: 0.5, reach: 0.46, fall: 0 }
+    }
+  },
+
+  /**
+   * One-shot: bursts and never reassembles. `settle: 0` is what makes this a
+   * distinct state rather than a re-tuning — no preset twiddling on an existing
+   * mode can express "and then it stays broken". Pair with `once`.
+   */
+  error: {
+    mode: 'shatter',
+    cycle: shatterCycle(0),
+    a64: {
+      speed: 1.25,
+      count: 1,
+      size: 1,
+      extra: { blast: 0.6, settle: 0, farK: 0.8, reach: 0.44, fall: 0.85, inkOut: 0.34 }
+    },
+    a20: {
+      speed: 1.3,
+      count: 0.16,
+      size: 1.8,
+      extra: { blast: 0.5, settle: 0, farK: 0.85, reach: 0.46, fall: 0.7, inkOut: 0.34 }
+    }
   }
 };
 

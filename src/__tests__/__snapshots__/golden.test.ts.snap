@@ -54,6 +54,33 @@ exports[`golden frames > booking @64 1`] = `
 ]
 `;
 
+exports[`golden frames > comparing @20 1`] = `
+[
+  "36:371fc4f7",
+  "36:6e74aa9f",
+  "36:4507d0f1",
+  "36:114c4cb0",
+]
+`;
+
+exports[`golden frames > comparing @32 1`] = `
+[
+  "64:3232c2f9",
+  "64:151304db",
+  "64:2249400d",
+  "64:399939f9",
+]
+`;
+
+exports[`golden frames > comparing @64 1`] = `
+[
+  "150:b1bb02e3",
+  "150:4b81c566",
+  "150:d8692521",
+  "150:be065bb5",
+]
+`;
+
 exports[`golden frames > composing @20 1`] = `
 [
   "208:861cb357",
@@ -105,6 +132,87 @@ exports[`golden frames > connecting @64 1`] = `
   "215:f00315db",
   "217:5eeef1f1",
   "213:b44c1c3f",
+]
+`;
+
+exports[`golden frames > drafting @20 1`] = `
+[
+  "7:ec3eeb57",
+  "23:c03b6496",
+  "40:1e8fa428",
+  "39:739a2042",
+]
+`;
+
+exports[`golden frames > drafting @32 1`] = `
+[
+  "12:e0113161",
+  "38:458a1bc5",
+  "65:e9ba3c17",
+  "63:24d7883c",
+]
+`;
+
+exports[`golden frames > drafting @64 1`] = `
+[
+  "23:8bc76b01",
+  "76:21c20bc8",
+  "131:919f5153",
+  "120:734eea33",
+]
+`;
+
+exports[`golden frames > error @20 1`] = `
+[
+  "30:48662276",
+  "30:906ec1ba",
+  "30:a1574923",
+  "30:3c94c53d",
+]
+`;
+
+exports[`golden frames > error @32 1`] = `
+[
+  "64:06c6db04",
+  "64:020a55d4",
+  "64:a43b58c6",
+  "64:e54ee754",
+]
+`;
+
+exports[`golden frames > error @64 1`] = `
+[
+  "190:7fbd71e8",
+  "190:076d4faf",
+  "190:4d6f4bf2",
+  "190:cce3d8e1",
+]
+`;
+
+exports[`golden frames > gathering @20 1`] = `
+[
+  "39:11e90be5",
+  "37:29b01ca3",
+  "37:8cedc369",
+  "38:56286162",
+]
+`;
+
+exports[`golden frames > gathering @32 1`] = `
+[
+  "62:3baddd38",
+  "61:9c11015d",
+  "58:4397da44",
+  "61:bb50bb8a",
+]
+`;
+
+exports[`golden frames > gathering @64 1`] = `
+[
+  "123:99728e9f",
+  "123:e9797dd7",
+  "120:572a563f",
+  "118:f89ce855",
 ]
 `;
 
@@ -243,6 +351,33 @@ exports[`golden frames > reasoning @64 1`] = `
 ]
 `;
 
+exports[`golden frames > retrying @20 1`] = `
+[
+  "30:48662276",
+  "30:e916fb94",
+  "30:148abfe4",
+  "30:3c06bbe2",
+]
+`;
+
+exports[`golden frames > retrying @32 1`] = `
+[
+  "64:06c6db04",
+  "64:8867d0ae",
+  "64:6dc20554",
+  "64:1a10c0a4",
+]
+`;
+
+exports[`golden frames > retrying @64 1`] = `
+[
+  "190:7fbd71e8",
+  "190:6cb87124",
+  "190:125f7364",
+  "190:8a7d226f",
+]
+`;
+
 exports[`golden frames > searching @20 1`] = `
 [
   "54:6ee1cb0d",
@@ -375,6 +510,33 @@ exports[`golden frames > success @64 1`] = `
   "138:ad5d3b28",
   "138:1f444b4e",
   "138:baaa3119",
+]
+`;
+
+exports[`golden frames > syncing @20 1`] = `
+[
+  "39:d41bc7eb",
+  "39:c76fd94a",
+  "39:3e1a0103",
+  "39:4155c112",
+]
+`;
+
+exports[`golden frames > syncing @32 1`] = `
+[
+  "74:c021fb91",
+  "74:7b4f43ea",
+  "74:0a65fa65",
+  "74:483fe660",
+]
+`;
+
+exports[`golden frames > syncing @64 1`] = `
+[
+  "165:36f8163c",
+  "165:25c69c4b",
+  "165:3078836d",
+  "165:b54a6841",
 ]
 `;
 

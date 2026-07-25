@@ -98,7 +98,43 @@ const KNOBS: Record<string, [min: number, max: number, step: number]> = {
   inkAhead: [0, 1, 0.01],
   inkRead: [0, 1, 0.01],
   inkActive: [0, 1, 0.01],
-  baseA: [0, 1, 0.01]
+  baseA: [0, 1, 0.01],
+
+  // batch-2 modes
+  // vortex
+  turns: [0.2, 6, 0.05],
+  disk: [0, 1, 0.01],
+  coreN: [1, 60, 1],
+  inkCore: [0, 1, 0.01],
+  partA: [0, 1, 0.01],
+  tilt: [0, 1.4, 0.01],
+  // helix
+  coil: [4, 140, 1],
+  pitch: [0.2, 6, 0.05],
+  taper: [0, 0.9, 0.01],
+  rungEvery: [1, 20, 1],
+  rungDots: [1, 8, 1],
+  rRung: [0, 3, 0.01],
+  inkRung: [0, 1, 0.01],
+  strandA: [0, 1, 0.01],
+  rungA: [0, 1, 0.01],
+  // cluster
+  dotN: [4, 400, 1],
+  groups: [2, 8, 1],
+  rWinner: [0, 3, 0.01],
+  inkWinner: [0, 1, 0.01],
+  dotA: [0, 1, 0.01],
+  // cascade
+  ragged: [0, 0.9, 0.01],
+  holdFrac: [0, 0.8, 0.01],
+  inkWritten: [0, 1, 0.01],
+  inkHead: [0, 1, 0.01],
+  // shatter
+  blast: [0, 3, 0.01],
+  settle: [0, 1, 1],
+  farK: [0, 2, 0.01],
+  rFlash: [0, 3, 0.01],
+  inkOut: [0, 1, 0.01]
 };
 
 export function TuningPanel({

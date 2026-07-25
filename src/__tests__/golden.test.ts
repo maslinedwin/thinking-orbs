@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { getLut } from '../color';
 import { DotBuffer } from '../engine/buffer';
+import { shatterCycle } from '../engine/burst';
 import { MODE_BUILDS } from '../engine/registry';
 import { ORB_STATES, resolvePreset } from '../presets';
 import { renderCanvas2D } from '../render/canvas2d';
@@ -67,8 +68,48 @@ describe('no state renders a degenerate frame', () => {
   });
 });
 
+describe('shatter settle', () => {
+  it('settle 1 returns to the intact field; settle 0 does not', () => {
+    // sample at the very end of the reassembling cycle: retrying should be back
+    // to (near) its calm frame, error should still be scattered
+    const calm = digest(frame('retrying', 64, 0.05).ops);
+    const endOfCycle = digest(frame('retrying', 64, shatterCycle(1) - 0.02).ops);
+    const errScattered = digest(frame('error', 64, shatterCycle(0) - 0.02).ops);
+    expect(endOfCycle).not.toBe(errScattered);
+    // and the scattered frame differs from calm, i.e. it really did burst
+    expect(errScattered).not.toBe(calm);
+  });
+
+  it('error collapses downward while retrying stays symmetric', () => {
+    // The two share a painter, so without this they differ only in TIMING and
+    // read as the same animation mid-burst. `fall` makes error sag under gravity
+    // and die out — a terminal failure should differ in kind, not duration.
+    const comY = (state: OrbState, frac: number) => {
+      const p = resolvePreset(state, 64);
+      const buf = new DotBuffer();
+      MODE_BUILDS[p.mode](buf, 64, frac * shatterCycle(p.opts.settle ?? 1), p.opts);
+      let sy = 0;
+      for (let i = 0; i < buf.n; i++) sy += buf.dots[i].y;
+      return sy / buf.n / 64;
+    };
+    // retrying radiates evenly: centre of mass stays put
+    expect(comY('retrying', 0.05)).toBeCloseTo(comY('retrying', 0.7), 1);
+    // error's centre of mass drops
+    expect(comY('error', 0.85)).toBeGreaterThan(comY('error', 0.05) + 0.08);
+  });
+
+  it('error holds its final frame once clamped by `once`', () => {
+    // `once` clamps t at cycle/speed, so every later t renders the same frame
+    const p = resolvePreset('error', 64);
+    const clamped = (p.cycle as number) / p.speed;
+    const a = digest(frame('error', 64, clamped).ops);
+    const b = digest(frame('error', 64, clamped).ops);
+    expect(a).toBe(b);
+  });
+});
+
 describe('progress', () => {
-  const PROGRESS_STATES: OrbState[] = ['queuing', 'reading'];
+  const PROGRESS_STATES: OrbState[] = ['queuing', 'reading', 'gathering', 'drafting'];
 
   it.each(PROGRESS_STATES)('%s renders a distinct frame at each step', (state) => {
     const digs = [0, 0.25, 0.5, 0.75, 1].map((p) =>

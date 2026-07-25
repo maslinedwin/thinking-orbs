@@ -16,7 +16,18 @@ const COUNT_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ['cols', 'rows'],
   ['shellRings', 'shellN']
 ];
-const COUNT_KEYS = ['orbitN', 'ghostN', 'arcN', 'ringDots', 'nodeN', 'partN'] as const;
+const COUNT_KEYS = [
+  'orbitN',
+  'ghostN',
+  'arcN',
+  'ringDots',
+  'nodeN',
+  'partN',
+  'dotN',
+  'coreN',
+  'coil',
+  'rungDots'
+] as const;
 const ICON_DENSITY_KEYS = ['iconD'] as const;
 
 // Every key that sets a dot's rendered radius — scaling all of them keeps
@@ -46,7 +57,10 @@ const RADIUS_KEYS = [
   'rPart',
   'rHot',
   'rEdge',
-  'rEdgeHot'
+  'rEdgeHot',
+  'rRung',
+  'rWinner',
+  'rFlash'
 ] as const;
 
 export function scaleCounts(opts: ModeOpts, scale: number): ModeOpts {
@@ -233,6 +247,94 @@ export const BASE_PROFILES: Record<string, ModeOpts> = {
     inkRead: 0.36,
     inkActive: 0.06,
     baseA: 0.9,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  vortex: {
+    partN: 130,
+    coreN: 12,
+    arms: 3,
+    armJitter: 0.14,
+    turns: 2.2,
+    tilt: 1.15,
+    disk: 0.18,
+    spin: 0.14,
+    flowRate: 0.34,
+    rPart: 0.95,
+    rDepth: 1.6,
+    rHot: 0.7,
+    rCore: 1.1,
+    inkFar: 0.66,
+    inkSpan: 0.5,
+    inkCore: 0.16,
+    partA: 0.95,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  helix: {
+    coil: 54,
+    pitch: 2.6,
+    spin: 1.15,
+    tilt: 0.22,
+    taper: 0.45,
+    rungEvery: 5,
+    rungDots: 3,
+    rBase: 1.05,
+    rDepth: 1.7,
+    rRung: 0.7,
+    inkFar: 0.66,
+    inkSpan: 0.54,
+    inkRung: 0.66,
+    strandA: 1,
+    rungA: 0.9,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  cluster: {
+    dotN: 150,
+    groups: 3,
+    spread: 0.62,
+    spin: 0.2,
+    rBase: 0.7,
+    rDepth: 1.7,
+    rWinner: 0.8,
+    inkFar: 0.66,
+    inkSpan: 0.54,
+    inkWinner: 0.22,
+    dotA: 0.95,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  cascade: {
+    cols: 16,
+    rows: 10,
+    inset: 0.12,
+    ragged: 0.42,
+    period: 2.6,
+    holdFrac: 0.38,
+    rBase: 2.1,
+    rHead: 1.6,
+    inkWritten: 0.5,
+    inkHead: 0.06,
+    dotA: 0.95,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
+  shatter: {
+    dotN: 190,
+    reach: 0.44,
+    blast: 0.95,
+    settle: 1,
+    fall: 0,
+    spin: 0.18,
+    farK: 0.45,
+    rBase: 1.0,
+    rDepth: 1.7,
+    rFlash: 0.7,
+    inkFar: 0.66,
+    inkSpan: 0.54,
+    inkOut: 0.2,
+    dotA: 1,
     rsPow: 0.6,
     rMin: 0.3
   }

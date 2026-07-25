@@ -43,7 +43,13 @@ const LABELS: Record<string, string> = {
   waiting: 'Waiting…',
   reasoning: 'Reasoning…',
   queuing: 'Queued…',
-  reading: 'Reading…'
+  reading: 'Reading…',
+  gathering: 'Gathering…',
+  syncing: 'Syncing…',
+  comparing: 'Comparing…',
+  drafting: 'Drafting…',
+  retrying: 'Retrying…',
+  error: 'Something went wrong'
 };
 
 /** Live device pixel ratio, capped at 2. */

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { shatterCycle } from '../engine/burst';
 import {
   MAX_SIZE,
   MIN_SIZE,
@@ -178,12 +179,40 @@ describe('anchor hygiene', () => {
 
 describe('progress modes', () => {
   it('declares exactly the modes that read progress', () => {
-    expect([...PROGRESS_MODES].sort()).toEqual(['funnel', 'raster']);
+    expect([...PROGRESS_MODES].sort()).toEqual(['cascade', 'funnel', 'raster', 'vortex']);
   });
 
   it('the progress-capable states map to those modes', () => {
-    expect(PROGRESS_MODES.has(resolvePreset('queuing', 64).mode)).toBe(true);
-    expect(PROGRESS_MODES.has(resolvePreset('reading', 64).mode)).toBe(true);
-    expect(PROGRESS_MODES.has(resolvePreset('working', 64).mode)).toBe(false);
+    for (const s of ['queuing', 'reading', 'gathering', 'drafting'] as const) {
+      expect(PROGRESS_MODES.has(resolvePreset(s, 64).mode), s).toBe(true);
+    }
+    for (const s of ['working', 'connecting', 'syncing', 'retrying'] as const) {
+      expect(PROGRESS_MODES.has(resolvePreset(s, 64).mode), s).toBe(false);
+    }
+  });
+});
+
+describe('shatter serves both retrying and error', () => {
+  it('shares one mode, differing only by settle', () => {
+    const r = resolvePreset('retrying', 64);
+    const e = resolvePreset('error', 64);
+    expect(r.mode).toBe('shatter');
+    expect(e.mode).toBe('shatter');
+    // `settle` is the whole reason error needed a painter rather than a
+    // re-tuning: nothing in the existing modes expresses "stays broken"
+    expect(r.opts.settle).toBe(1);
+    expect(e.opts.settle).toBe(0);
+  });
+
+  it('only error declares a cycle, so only error can be held with `once`', () => {
+    expect(resolvePreset('error', 64).cycle).toBeGreaterThan(0);
+    expect(resolvePreset('retrying', 64).cycle).toBeUndefined();
+  });
+
+  it("error's cycle is shorter than a full reassembling loop", () => {
+    // it ends at full scatter rather than after the return leg
+    const e = resolvePreset('error', 64).cycle as number;
+    expect(e).toBeLessThan(shatterCycle(1));
+    expect(e).toBeCloseTo(shatterCycle(0), 10);
   });
 });

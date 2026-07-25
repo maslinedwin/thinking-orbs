@@ -25,6 +25,14 @@ import type { Palette, PaletteName, Ramp } from './color';
  * - `reasoning`  — an activation hops node→node across a constellation
  * - `queuing`    — dots fall through an hourglass waist (accepts `progress`)
  * - `reading`    — a flat lattice sweeps row by row (accepts `progress`)
+ *
+ * And five more:
+ * - `gathering`  — dots spiral inward and accrete (accepts `progress`)
+ * - `syncing`    — two counter-rotating strands with rungs between them
+ * - `comparing`  — a field splits into groups, one wins, then re-merges
+ * - `drafting`   — dots fill in line by line, ragged (accepts `progress`)
+ * - `retrying`   — bursts outward, hangs, then snaps back together
+ * - `error`      — one-shot; bursts and never reassembles (pair with `once`)
  */
 export type OrbState =
   | 'working'
@@ -42,7 +50,13 @@ export type OrbState =
   | 'waiting'
   | 'reasoning'
   | 'queuing'
-  | 'reading';
+  | 'reading'
+  | 'gathering'
+  | 'syncing'
+  | 'comparing'
+  | 'drafting'
+  | 'retrying'
+  | 'error';
 
 /**
  * Rendered size in CSS pixels. Any value in 12–256 works; 20 and 64 are the

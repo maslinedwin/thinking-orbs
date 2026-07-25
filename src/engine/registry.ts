@@ -2,9 +2,12 @@
 // shaking can in principle drop unused modes in custom builds.
 
 import type { ModeKey } from '../presets';
-import { buildFunnel } from './flow';
+import { buildShatter } from './burst';
+import { buildCluster } from './cluster';
+import { buildFunnel, buildVortex } from './flow';
 import { buildGraph } from './graph';
-import { buildRaster } from './grid';
+import { buildCascade, buildRaster } from './grid';
+import { buildHelix } from './helix';
 import { buildGlobe, buildRubik, buildWave } from './lattice';
 import { buildMorph } from './morph';
 import { buildOrbits } from './orbits';
@@ -24,5 +27,10 @@ export const MODE_BUILDS: Record<ModeKey, ModeBuild> = {
   sonar: buildSonar,
   graph: buildGraph,
   funnel: buildFunnel,
-  raster: buildRaster
+  raster: buildRaster,
+  vortex: buildVortex,
+  helix: buildHelix,
+  cluster: buildCluster,
+  cascade: buildCascade,
+  shatter: buildShatter
 };
