@@ -4,6 +4,7 @@
 import type { ModeKey } from '../presets';
 import { buildShatter } from './burst';
 import { buildCluster } from './cluster';
+import { buildFault } from './fault';
 import { buildFunnel, buildVortex } from './flow';
 import { buildGraph } from './graph';
 import { buildCascade, buildRaster } from './grid';
@@ -32,5 +33,6 @@ export const MODE_BUILDS: Record<ModeKey, ModeBuild> = {
   helix: buildHelix,
   cluster: buildCluster,
   cascade: buildCascade,
-  shatter: buildShatter
+  shatter: buildShatter,
+  fault: buildFault
 };

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { shatterCycle } from '../engine/burst';
+import { faultCycle } from '../engine/fault';
 import {
   MAX_SIZE,
   MIN_SIZE,
@@ -192,16 +193,13 @@ describe('progress modes', () => {
   });
 });
 
-describe('shatter serves both retrying and error', () => {
-  it('shares one mode, differing only by settle', () => {
-    const r = resolvePreset('retrying', 64);
-    const e = resolvePreset('error', 64);
-    expect(r.mode).toBe('shatter');
-    expect(e.mode).toBe('shatter');
-    // `settle` is the whole reason error needed a painter rather than a
-    // re-tuning: nothing in the existing modes expresses "stays broken"
-    expect(r.opts.settle).toBe(1);
-    expect(e.opts.settle).toBe(0);
+describe('error and retrying are separate modes', () => {
+  it('do not share a painter', () => {
+    // As a `shatter` variant, error differed from retrying only in TIMING and
+    // read as the same animation mid-burst. Colour would have separated them,
+    // but this library is single-hue by design, so the split is structural.
+    expect(resolvePreset('retrying', 64).mode).toBe('shatter');
+    expect(resolvePreset('error', 64).mode).toBe('fault');
   });
 
   it('only error declares a cycle, so only error can be held with `once`', () => {
@@ -209,10 +207,12 @@ describe('shatter serves both retrying and error', () => {
     expect(resolvePreset('retrying', 64).cycle).toBeUndefined();
   });
 
-  it("error's cycle is shorter than a full reassembling loop", () => {
-    // it ends at full scatter rather than after the return leg
-    const e = resolvePreset('error', 64).cycle as number;
-    expect(e).toBeLessThan(shatterCycle(1));
-    expect(e).toBeCloseTo(shatterCycle(0), 10);
+  it("error's cycle ends as the X finishes forming, not after the reset", () => {
+    expect(resolvePreset('error', 64).cycle).toBeCloseTo(faultCycle(), 10);
+  });
+
+  it('retrying still reassembles', () => {
+    expect(resolvePreset('retrying', 64).opts.settle).toBe(1);
+    expect(shatterCycle(1)).toBeGreaterThan(shatterCycle(0));
   });
 });

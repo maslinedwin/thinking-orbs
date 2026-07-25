@@ -8,6 +8,7 @@
 // size 64 and CSS-scaling it to 56px.)
 
 import { shatterCycle } from './engine/burst';
+import { faultCycle } from './engine/fault';
 import type { ModeOpts } from './engine/profiles';
 import { BASE_PROFILES, scaleCounts, scaleRadii } from './engine/profiles';
 import type { OrbState } from './types';
@@ -28,7 +29,8 @@ export type ModeKey =
   | 'helix'
   | 'cluster'
   | 'cascade'
-  | 'shatter';
+  | 'shatter'
+  | 'fault';
 
 /**
  * Modes that read the `progress` prop. Everything else ignores it — the
@@ -248,25 +250,20 @@ const STATES: Record<OrbState, StatePreset> = {
   },
 
   /**
-   * One-shot: bursts and never reassembles. `settle: 0` is what makes this a
-   * distinct state rather than a re-tuning — no preset twiddling on an existing
-   * mode can express "and then it stays broken". Pair with `once`.
+   * One-shot: the field breaks apart and reassembles into a dotted X, then
+   * holds. Pair with `once`.
+   *
+   * A mode of its own rather than a `shatter` variant: as a shatter variant it
+   * differed from `retrying` only in timing and read as the same animation.
+   * Tinting it red would have separated them at a glance, but the library is
+   * deliberately single-hue, so the distinction is structural instead.
    */
   error: {
-    mode: 'shatter',
-    cycle: shatterCycle(0),
-    a64: {
-      speed: 1.25,
-      count: 1,
-      size: 1,
-      extra: { blast: 0.6, settle: 0, farK: 0.8, reach: 0.44, fall: 0.85, inkOut: 0.34 }
-    },
-    a20: {
-      speed: 1.3,
-      count: 0.16,
-      size: 1.8,
-      extra: { blast: 0.5, settle: 0, farK: 0.85, reach: 0.46, fall: 0.7, inkOut: 0.34 }
-    }
+    mode: 'fault',
+    cycle: faultCycle(),
+    a64: { speed: 1.0, count: 1, size: 1, extra: { blast: 0.7, arm: 0.8, reach: 0.5 } },
+    // fewer, larger dots at 20px — the X needs clear strokes, not fine speckle
+    a20: { speed: 1.05, count: 0.5, size: 1.4, extra: { blast: 0.6, arm: 0.84, reach: 0.52 } }
   }
 };
 

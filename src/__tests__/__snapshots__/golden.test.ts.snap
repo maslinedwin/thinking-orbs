@@ -164,28 +164,28 @@ exports[`golden frames > drafting @64 1`] = `
 
 exports[`golden frames > error @20 1`] = `
 [
-  "30:48662276",
-  "30:906ec1ba",
-  "30:a1574923",
-  "30:3c94c53d",
+  "22:faf4ca99",
+  "22:3bb4eacb",
+  "22:524dd4a5",
+  "22:524dd4a5",
 ]
 `;
 
 exports[`golden frames > error @32 1`] = `
 [
-  "64:06c6db04",
-  "64:020a55d4",
-  "64:a43b58c6",
-  "64:e54ee754",
+  "29:bbfc0c29",
+  "29:62a35160",
+  "29:be978652",
+  "29:be978652",
 ]
 `;
 
 exports[`golden frames > error @64 1`] = `
 [
-  "190:7fbd71e8",
-  "190:076d4faf",
-  "190:4d6f4bf2",
-  "190:cce3d8e1",
+  "44:d1f85490",
+  "44:b1d09ee4",
+  "44:8bb903b1",
+  "44:8bb903b1",
 ]
 `;
 

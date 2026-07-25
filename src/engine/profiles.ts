@@ -320,6 +320,22 @@ export const BASE_PROFILES: Record<string, ModeOpts> = {
     rsPow: 0.6,
     rMin: 0.3
   },
+  fault: {
+    dotN: 44,
+    reach: 0.5,
+    blast: 0.7,
+    arm: 0.8,
+    spin: 0.35,
+    rBase: 0.9,
+    rDepth: 1.6,
+    rX: 2.05,
+    inkFar: 0.66,
+    inkSpan: 0.54,
+    inkX: 0.1,
+    dotA: 1,
+    rsPow: 0.6,
+    rMin: 0.3
+  },
   shatter: {
     dotN: 190,
     reach: 0.44,

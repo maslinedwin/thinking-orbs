@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { getLut } from '../color';
 import { DotBuffer } from '../engine/buffer';
 import { shatterCycle } from '../engine/burst';
+import { faultCycle } from '../engine/fault';
 import { MODE_BUILDS } from '../engine/registry';
 import { ORB_STATES, resolvePreset } from '../presets';
 import { renderCanvas2D } from '../render/canvas2d';
@@ -68,43 +69,56 @@ describe('no state renders a degenerate frame', () => {
   });
 });
 
-describe('shatter settle', () => {
-  it('settle 1 returns to the intact field; settle 0 does not', () => {
-    // sample at the very end of the reassembling cycle: retrying should be back
-    // to (near) its calm frame, error should still be scattered
-    const calm = digest(frame('retrying', 64, 0.05).ops);
-    const endOfCycle = digest(frame('retrying', 64, shatterCycle(1) - 0.02).ops);
-    const errScattered = digest(frame('error', 64, shatterCycle(0) - 0.02).ops);
-    expect(endOfCycle).not.toBe(errScattered);
-    // and the scattered frame differs from calm, i.e. it really did burst
-    expect(errScattered).not.toBe(calm);
+describe('error resolves into an X', () => {
+  /** Dot positions at a given point in error's cycle, in unit canvas coords. */
+  const dotsAt = (frac: number) => {
+    const p = resolvePreset('error', 64);
+    const buf = new DotBuffer();
+    MODE_BUILDS[p.mode](buf, 64, frac * faultCycle(), p.opts);
+    const pts: Array<[number, number]> = [];
+    for (let i = 0; i < buf.n; i++) pts.push([buf.dots[i].x / 64, buf.dots[i].y / 64]);
+    return pts;
+  };
+
+  it('lands its dots on the two diagonals once formed', () => {
+    // On a centred X every dot satisfies |dx| ≈ |dy|. That's a strong, cheap
+    // assertion that the shape genuinely formed rather than merely settling.
+    const pts = dotsAt(1);
+    expect(pts.length).toBeGreaterThan(6);
+    let onDiagonal = 0;
+    for (const [x, y] of pts) {
+      const dx = Math.abs(x - 0.5);
+      const dy = Math.abs(y - 0.5);
+      if (Math.abs(dx - dy) < 0.03) onDiagonal++;
+    }
+    expect(onDiagonal / pts.length).toBeGreaterThan(0.9);
   });
 
-  it('error collapses downward while retrying stays symmetric', () => {
-    // The two share a painter, so without this they differ only in TIMING and
-    // read as the same animation mid-burst. `fall` makes error sag under gravity
-    // and die out — a terminal failure should differ in kind, not duration.
-    const comY = (state: OrbState, frac: number) => {
-      const p = resolvePreset(state, 64);
-      const buf = new DotBuffer();
-      MODE_BUILDS[p.mode](buf, 64, frac * shatterCycle(p.opts.settle ?? 1), p.opts);
-      let sy = 0;
-      for (let i = 0; i < buf.n; i++) sy += buf.dots[i].y;
-      return sy / buf.n / 64;
-    };
-    // retrying radiates evenly: centre of mass stays put
-    expect(comY('retrying', 0.05)).toBeCloseTo(comY('retrying', 0.7), 1);
-    // error's centre of mass drops
-    expect(comY('error', 0.85)).toBeGreaterThan(comY('error', 0.05) + 0.08);
+  it('is NOT an X while still intact or mid-break', () => {
+    for (const frac of [0.05, 0.45]) {
+      const pts = dotsAt(frac);
+      let onDiagonal = 0;
+      for (const [x, y] of pts) {
+        if (Math.abs(Math.abs(x - 0.5) - Math.abs(y - 0.5)) < 0.03) onDiagonal++;
+      }
+      expect(onDiagonal / pts.length, `frac ${frac}`).toBeLessThan(0.6);
+    }
   });
 
-  it('error holds its final frame once clamped by `once`', () => {
-    // `once` clamps t at cycle/speed, so every later t renders the same frame
+  it('reads differently from retrying at every point in the cycle', () => {
+    // the failure this replaces: as a shatter variant the two were
+    // indistinguishable mid-burst
+    for (const frac of [0.1, 0.4, 0.7, 1]) {
+      const e = digest(frame('error', 64, frac * faultCycle()).ops);
+      const r = digest(frame('retrying', 64, frac * shatterCycle(1)).ops);
+      expect(e, `frac ${frac}`).not.toBe(r);
+    }
+  });
+
+  it('holds its final frame once clamped by `once`', () => {
     const p = resolvePreset('error', 64);
     const clamped = (p.cycle as number) / p.speed;
-    const a = digest(frame('error', 64, clamped).ops);
-    const b = digest(frame('error', 64, clamped).ops);
-    expect(a).toBe(b);
+    expect(digest(frame('error', 64, clamped).ops)).toBe(digest(frame('error', 64, clamped).ops));
   });
 });
 
