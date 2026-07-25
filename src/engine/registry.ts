@@ -9,13 +9,19 @@ import { buildFunnel, buildVortex } from './flow';
 import { buildGraph } from './graph';
 import { buildCascade, buildRaster } from './grid';
 import { buildHelix } from './helix';
+import { buildIgnite } from './ignite';
 import { buildGlobe, buildRubik, buildWave } from './lattice';
 import { buildMorph } from './morph';
 import { buildOrbits } from './orbits';
+import { buildDetour, buildFlightpath } from './path';
+import { buildPins } from './pins';
 import { buildRibbon } from './ribbon';
+import { buildAttest } from './ring';
 import { buildSonar } from './rings';
 import { buildRoute } from './route';
+import { buildSeal } from './seal';
 import type { ModeBuild } from './types';
+import { buildVigil } from './vigil';
 
 export const MODE_BUILDS: Record<ModeKey, ModeBuild> = {
   orbits: buildOrbits,
@@ -34,5 +40,12 @@ export const MODE_BUILDS: Record<ModeKey, ModeBuild> = {
   cluster: buildCluster,
   cascade: buildCascade,
   shatter: buildShatter,
-  fault: buildFault
+  fault: buildFault,
+  seal: buildSeal,
+  flightpath: buildFlightpath,
+  detour: buildDetour,
+  vigil: buildVigil,
+  attest: buildAttest,
+  ignite: buildIgnite,
+  pins: buildPins
 };

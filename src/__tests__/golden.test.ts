@@ -122,8 +122,53 @@ describe('error resolves into an X', () => {
   });
 });
 
+describe('plotting resolves noise into discrete pins', () => {
+  /** Dot positions in unit canvas coords at a point in plotting's cycle. */
+  const dotsAt = (t: number) => {
+    const p = resolvePreset('plotting', 64);
+    const buf = new DotBuffer();
+    MODE_BUILDS[p.mode](buf, 64, t, p.opts);
+    const pts: Array<[number, number]> = [];
+    for (let i = 0; i < buf.n; i++) pts.push([buf.dots[i].x / 64, buf.dots[i].y / 64]);
+    return pts;
+  };
+
+  /** Greedy cluster count at a given radius — how many distinct blobs there are. */
+  const clusters = (pts: Array<[number, number]>, r: number) => {
+    const centres: Array<[number, number]> = [];
+    for (const [x, y] of pts) {
+      if (!centres.some(([cx, cy]) => Math.hypot(x - cx, y - cy) < r)) centres.push([x, y]);
+    }
+    return centres.length;
+  };
+
+  it('is diffuse noise early and a small number of tight pins once formed', () => {
+    // the whole point of the mode is the two beats: discover, then order.
+    // Snapshotting can't tell those apart, so assert the clustering directly.
+    const noisy = clusters(dotsAt(0.05), 0.09);
+    const formed = clusters(dotsAt(3.0), 0.09);
+    expect(formed).toBeLessThan(noisy);
+    expect(formed).toBeLessThanOrEqual(14);
+  });
+});
+
+describe('diverting abandons one route for another', () => {
+  it('renders a different frame intact, mid-break and after the fork', () => {
+    const digs = [0.2, 0.8, 2.2].map((t) => digest(frame('diverting', 64, t).ops));
+    expect(new Set(digs).size).toBe(3);
+  });
+});
+
 describe('progress', () => {
-  const PROGRESS_STATES: OrbState[] = ['queuing', 'reading', 'gathering', 'drafting'];
+  const PROGRESS_STATES: OrbState[] = [
+    'queuing',
+    'reading',
+    'gathering',
+    'drafting',
+    'progressing',
+    'verifying',
+    'activating'
+  ];
 
   it.each(PROGRESS_STATES)('%s renders a distinct frame at each step', (state) => {
     const digs = [0, 0.25, 0.5, 0.75, 1].map((p) =>

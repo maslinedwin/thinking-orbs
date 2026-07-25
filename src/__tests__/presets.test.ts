@@ -180,16 +180,53 @@ describe('anchor hygiene', () => {
 
 describe('progress modes', () => {
   it('declares exactly the modes that read progress', () => {
-    expect([...PROGRESS_MODES].sort()).toEqual(['cascade', 'funnel', 'raster', 'vortex']);
+    expect([...PROGRESS_MODES].sort()).toEqual([
+      'attest',
+      'cascade',
+      'flightpath',
+      'funnel',
+      'ignite',
+      'raster',
+      'vortex'
+    ]);
   });
 
   it('the progress-capable states map to those modes', () => {
-    for (const s of ['queuing', 'reading', 'gathering', 'drafting'] as const) {
+    const yes = [
+      'queuing',
+      'reading',
+      'gathering',
+      'drafting',
+      'progressing',
+      'verifying',
+      'activating'
+    ] as const;
+    for (const s of yes) {
       expect(PROGRESS_MODES.has(resolvePreset(s, 64).mode), s).toBe(true);
     }
-    for (const s of ['working', 'connecting', 'syncing', 'retrying'] as const) {
+    for (const s of ['working', 'connecting', 'syncing', 'retrying', 'committing'] as const) {
       expect(PROGRESS_MODES.has(resolvePreset(s, 64).mode), s).toBe(false);
     }
+  });
+});
+
+describe('monitoring is the long-horizon state', () => {
+  it('is the slowest state shipped, by a clear margin', () => {
+    // The tempo IS the design: price alerts run for months and a claim sits at
+    // `awaiting_response` for weeks, so this must not read as "busy". If some
+    // other state ever gets slower, one of the two is mis-tuned.
+    const mine = resolvePreset('monitoring', 64).speed;
+    for (const s of ORB_STATES) {
+      if (s === 'monitoring') continue;
+      expect(resolvePreset(s, 64).speed, `${s} should be faster than monitoring`).toBeGreaterThan(
+        mine
+      );
+    }
+    // and clearly slower than the next slowest, not marginally
+    const others = ORB_STATES.filter((s) => s !== 'monitoring').map(
+      (s) => resolvePreset(s, 64).speed
+    );
+    expect(mine * 2).toBeLessThan(Math.min(...others));
   });
 });
 

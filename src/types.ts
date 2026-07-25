@@ -32,7 +32,16 @@ import type { Palette, PaletteName, Ramp } from './color';
  * - `comparing`  — a field splits into groups, one wins, then re-merges
  * - `drafting`   — dots fill in line by line, ragged (accepts `progress`)
  * - `retrying`   — bursts outward, hangs, then snaps back together
- * - `error`      — one-shot; bursts and never reassembles (pair with `once`)
+ * - `error`      — one-shot; breaks apart and reforms into a dotted X
+ *
+ * And seven shaped by travel-specific waits:
+ * - `committing`  — converges into an exact ring and holds; the irreversible commit
+ * - `progressing` — position along a known route (accepts `progress`)
+ * - `monitoring`  — the slowest state; watching over days rather than seconds
+ * - `diverting`   — one route breaks, an alternative forks in
+ * - `verifying`   — a segmented ring fills as each item validates (accepts `progress`)
+ * - `activating`  — a seed spreads and the filled region persists (accepts `progress`)
+ * - `plotting`    — noise resolves into map pins, then a route chains them
  */
 export type OrbState =
   | 'working'
@@ -56,7 +65,14 @@ export type OrbState =
   | 'comparing'
   | 'drafting'
   | 'retrying'
-  | 'error';
+  | 'error'
+  | 'committing'
+  | 'progressing'
+  | 'monitoring'
+  | 'diverting'
+  | 'verifying'
+  | 'activating'
+  | 'plotting';
 
 /**
  * Rendered size in CSS pixels. Any value in 12–256 works; 20 and 64 are the

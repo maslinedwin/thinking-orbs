@@ -49,7 +49,14 @@ const LABELS: Record<string, string> = {
   comparing: 'Comparing…',
   drafting: 'Drafting…',
   retrying: 'Retrying…',
-  error: 'Something went wrong'
+  error: 'Something went wrong',
+  committing: 'Confirming…',
+  progressing: 'In progress…',
+  monitoring: 'Monitoring…',
+  diverting: 'Finding an alternative…',
+  verifying: 'Verifying…',
+  activating: 'Activating…',
+  plotting: 'Plotting…'
 };
 
 /** Live device pixel ratio, capped at 2. */

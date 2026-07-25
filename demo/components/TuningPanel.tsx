@@ -134,7 +134,73 @@ const KNOBS: Record<string, [min: number, max: number, step: number]> = {
   settle: [0, 1, 1],
   farK: [0, 2, 0.01],
   rFlash: [0, 3, 0.01],
-  inkOut: [0, 1, 0.01]
+  inkOut: [0, 1, 0.01],
+
+  // fault
+  arm: [0.2, 1.2, 0.01],
+  rX: [0, 5, 0.01],
+  inkX: [0, 1, 0.01],
+
+  // batch-3 modes
+  // seal
+  ringR: [0.2, 1.2, 0.01],
+  coreR: [0, 0.6, 0.005],
+  scatter: [0, 1.2, 0.01],
+  spreadA: [0, 2, 0.01],
+  overshoot: [0, 0.3, 0.005],
+  rLock: [0, 3, 0.01],
+  inkLoose: [0, 1, 0.01],
+  // flightpath / detour
+  bow: [-0.8, 0.8, 0.01],
+  bowAlt: [-0.8, 0.8, 0.01],
+  aheadOn: [0, 1, 0.01],
+  trackOn: [0, 1, 0.01],
+  markN: [3, 20, 1],
+  markR: [0, 0.3, 0.005],
+  rTrack: [0, 3, 0.01],
+  rLit: [0, 4, 0.01],
+  gap: [0.02, 0.4, 0.005],
+  debris: [0, 30, 1],
+  debrisSpread: [0, 0.6, 0.01],
+  // vigil
+  fieldN: [8, 300, 1],
+  orbit: [0, 3, 0.01],
+  orbitY: [-1, 1, 0.01],
+  beatEvery: [0.5, 10, 0.1],
+  rippleReach: [0.5, 5, 0.05],
+  rippleWidth: [0.05, 1.5, 0.01],
+  trailGap: [0.02, 0.6, 0.01],
+  rField: [0, 3, 0.01],
+  rWave: [0, 4, 0.01],
+  rSentinel: [0, 5, 0.01],
+  inkWave: [0, 1, 0.01],
+  fieldA: [0, 1, 0.01],
+  // attest
+  segN: [3, 40, 1],
+  perSeg: [2, 20, 1],
+  gapFrac: [0, 0.8, 0.01],
+  rDone: [0, 3, 0.01],
+  rChecking: [0, 3, 0.01],
+  tickN: [2, 20, 1],
+  rTick: [0, 4, 0.01],
+  inkPending: [0, 1, 0.01],
+  // ignite
+  frontWidth: [0.02, 0.6, 0.01],
+  rSeed: [0, 5, 0.01],
+  inkCold: [0, 1, 0.01],
+  // pins
+  pinN: [2, 16, 1],
+  perPin: [2, 24, 1],
+  segDots: [1, 20, 1],
+  pinRing: [0.1, 1, 0.01],
+  clusterR: [0.01, 0.4, 0.005],
+  rPin: [0, 3, 0.01],
+  rReached: [0, 3, 0.01],
+  rLink: [0, 3, 0.01],
+  inkNoise: [0, 1, 0.01],
+  inkReached: [0, 1, 0.01],
+  inkLink: [0, 1, 0.01],
+  linkA: [0, 1, 0.01]
 };
 
 export function TuningPanel({

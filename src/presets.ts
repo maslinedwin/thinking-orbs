@@ -30,7 +30,14 @@ export type ModeKey =
   | 'cluster'
   | 'cascade'
   | 'shatter'
-  | 'fault';
+  | 'fault'
+  | 'seal'
+  | 'flightpath'
+  | 'detour'
+  | 'vigil'
+  | 'attest'
+  | 'ignite'
+  | 'pins';
 
 /**
  * Modes that read the `progress` prop. Everything else ignores it — the
@@ -42,7 +49,10 @@ export const PROGRESS_MODES: ReadonlySet<ModeKey> = new Set<ModeKey>([
   'funnel',
   'raster',
   'vortex',
-  'cascade'
+  'cascade',
+  'flightpath',
+  'attest',
+  'ignite'
 ]);
 
 interface Preset {
@@ -258,6 +268,87 @@ const STATES: Record<OrbState, StatePreset> = {
    * Tinting it red would have separated them at a glance, but the library is
    * deliberately single-hue, so the distinction is structural instead.
    */
+  // --- batch 3: travel-shaped waits ----------------------------------
+  // Generic verb names by request, but each exists because of a travel wait
+  // with no analogue in the batches above.
+
+  /**
+   * A loose field converges into an exact ring, snaps, and holds — the
+   * irreversible commit. `booking` deliberates; this certifies. A reservation
+   * (PNR) is not a ticket, and issuing one can't be walked back, so the motion
+   * ends in stillness.
+   */
+  committing: {
+    mode: 'seal',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { ringR: 0.72, scatter: 0.42 } },
+    a20: { speed: 1.1, count: 0.24, size: 1.62, extra: { ringR: 0.74, scatter: 0.34 } }
+  },
+
+  /** Position along a KNOWN route, with a ground track below. Takes `progress`. */
+  progressing: {
+    mode: 'flightpath',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { bow: 0.3, aheadOn: 0.24 } },
+    a20: { speed: 1.05, count: 0.42, size: 1.9, extra: { bow: 0.34, aheadOn: 0.32 } }
+  },
+
+  /**
+   * The slowest state shipped, deliberately. Price alerts run for months and a
+   * claim sits at `awaiting_response` for weeks — the tempo IS the signal.
+   * Distinct from `idle`, which means not working rather than watching.
+   */
+  monitoring: {
+    mode: 'vigil',
+    a64: { speed: 0.2, count: 1, size: 1, extra: { orbit: 0.55, beatEvery: 3.2 } },
+    a20: { speed: 0.26, count: 0.24, size: 1.7, extra: { orbit: 0.6, beatEvery: 3.0 } }
+  },
+
+  /** One route breaks and an alternative forks in from the break. */
+  diverting: {
+    mode: 'detour',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { gap: 0.13, debris: 10, bow: 0.3 } },
+    a20: { speed: 1.05, count: 0.42, size: 1.9, extra: { gap: 0.17, debris: 7, bow: 0.34 } }
+  },
+
+  /** A segmented ring fills as each item validates. Takes `progress`. */
+  verifying: {
+    mode: 'attest',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { segN: 12, perSeg: 7 } },
+    // fewer, fatter segments at 20px, or the gaps close up and it reads as a ring
+    a20: { speed: 1.05, count: 0.34, size: 1.8, extra: { segN: 7, perSeg: 4 } }
+  },
+
+  /**
+   * A seed spreads outward and the filled region PERSISTS — something coming
+   * online. Unlike `waiting`/sonar, whose rings expand and fade away.
+   * Takes `progress`.
+   */
+  activating: {
+    mode: 'ignite',
+    a64: { speed: 1.0, count: 1, size: 1, extra: { frontWidth: 0.16, rings: 7 } },
+    a20: { speed: 1.05, count: 0.24, size: 1.65, extra: { frontWidth: 0.22, rings: 5 } }
+  },
+
+  /**
+   * Noise resolves into discrete map pins, then a route chains them in order —
+   * the reel-to-itinerary shape: discover N places, then sequence them.
+   */
+  plotting: {
+    mode: 'pins',
+    a64: {
+      speed: 1.0,
+      count: 1,
+      size: 1,
+      extra: { pinN: 6, perPin: 12, clusterR: 0.11, segDots: 9 }
+    },
+    // fewer pins at 20px so they stay visually separate
+    a20: {
+      speed: 1.05,
+      count: 0.34,
+      size: 1.85,
+      extra: { pinN: 4, perPin: 8, clusterR: 0.15, segDots: 6 }
+    }
+  },
+
   error: {
     mode: 'fault',
     cycle: faultCycle(),
