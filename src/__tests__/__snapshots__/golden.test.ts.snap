@@ -1,0 +1,298 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden frames > analyzing @20 1`] = `
+[
+  "62:81651515",
+  "62:45ccfbc9",
+  "62:7def6c48",
+  "62:853c33f6",
+]
+`;
+
+exports[`golden frames > analyzing @32 1`] = `
+[
+  "107:d5400bb3",
+  "107:a75f18fd",
+  "107:a43d4028",
+  "107:d7e20a52",
+]
+`;
+
+exports[`golden frames > analyzing @64 1`] = `
+[
+  "274:5fae1c8a",
+  "274:249583ed",
+  "274:3370c227",
+  "274:1cf0afca",
+]
+`;
+
+exports[`golden frames > booking @20 1`] = `
+[
+  "30:58741b27",
+  "30:94475648",
+  "30:98ec99ea",
+  "30:a69d2000",
+]
+`;
+
+exports[`golden frames > booking @32 1`] = `
+[
+  "62:2b019d5b",
+  "62:119f0d59",
+  "62:40ccea33",
+  "62:95502b34",
+]
+`;
+
+exports[`golden frames > booking @64 1`] = `
+[
+  "138:e192efa9",
+  "138:4101fc3b",
+  "138:b8803dbc",
+  "138:c40841ea",
+]
+`;
+
+exports[`golden frames > composing @20 1`] = `
+[
+  "208:861cb357",
+  "208:292075c2",
+  "208:f2f095b2",
+  "208:98fdd034",
+]
+`;
+
+exports[`golden frames > composing @32 1`] = `
+[
+  "258:7d643ba4",
+  "258:d8fb36a0",
+  "258:fe3d92d6",
+  "258:9733f1af",
+]
+`;
+
+exports[`golden frames > composing @64 1`] = `
+[
+  "566:d2a84e19",
+  "566:37aca52c",
+  "566:d548782a",
+  "566:4bbd2d92",
+]
+`;
+
+exports[`golden frames > idle @20 1`] = `
+[
+  "54:b41f04c7",
+  "54:4ab54502",
+  "54:88668e55",
+  "54:57c83f92",
+]
+`;
+
+exports[`golden frames > idle @32 1`] = `
+[
+  "86:27fcf97e",
+  "86:707d3363",
+  "86:5aa90b5e",
+  "86:e419962e",
+]
+`;
+
+exports[`golden frames > idle @64 1`] = `
+[
+  "204:0d96a9a3",
+  "204:1c978f55",
+  "204:4edcfe47",
+  "204:081e13ae",
+]
+`;
+
+exports[`golden frames > listening @20 1`] = `
+[
+  "42:07fa0019",
+  "42:9659b883",
+  "42:88359ac3",
+  "42:6bf7cdee",
+]
+`;
+
+exports[`golden frames > listening @32 1`] = `
+[
+  "62:c9c7d4b6",
+  "62:79080f53",
+  "62:8f7bd479",
+  "62:5b828835",
+]
+`;
+
+exports[`golden frames > listening @64 1`] = `
+[
+  "134:6471b443",
+  "134:fe594873",
+  "134:438d7d0f",
+  "134:2c1515e0",
+]
+`;
+
+exports[`golden frames > searching @20 1`] = `
+[
+  "54:6ee1cb0d",
+  "54:9144df0f",
+  "54:f6c0efd8",
+  "54:7a3ab075",
+]
+`;
+
+exports[`golden frames > searching @32 1`] = `
+[
+  "86:33813f0c",
+  "86:a3ffaa3e",
+  "86:e218f568",
+  "86:89d737d8",
+]
+`;
+
+exports[`golden frames > searching @64 1`] = `
+[
+  "204:1ff095a4",
+  "204:d1f53c25",
+  "204:ed247243",
+  "204:7a689ad7",
+]
+`;
+
+exports[`golden frames > shaping @20 1`] = `
+[
+  "18:d241d25a",
+  "18:89e98f94",
+  "18:e9f3a542",
+  "18:b22f88fc",
+]
+`;
+
+exports[`golden frames > shaping @32 1`] = `
+[
+  "18:3ac6714b",
+  "18:8d7d5117",
+  "18:5580fcf0",
+  "18:f188ba77",
+]
+`;
+
+exports[`golden frames > shaping @64 1`] = `
+[
+  "18:10ab8a34",
+  "18:c9a4c2ca",
+  "18:176cd666",
+  "18:b17c0acc",
+]
+`;
+
+exports[`golden frames > solving @20 1`] = `
+[
+  "30:58741b27",
+  "30:1bf90201",
+  "30:650e5de8",
+  "30:7d642904",
+]
+`;
+
+exports[`golden frames > solving @32 1`] = `
+[
+  "62:2b019d5b",
+  "62:24e6a046",
+  "62:dbe90498",
+  "62:e0c62b00",
+]
+`;
+
+exports[`golden frames > solving @64 1`] = `
+[
+  "138:e192efa9",
+  "138:71907985",
+  "138:4d8977d3",
+  "138:f1e1068a",
+]
+`;
+
+exports[`golden frames > streaming @20 1`] = `
+[
+  "251:254f2080",
+  "251:4b36618d",
+  "251:a1ad89d6",
+  "251:1a2c2041",
+]
+`;
+
+exports[`golden frames > streaming @32 1`] = `
+[
+  "297:7b4e9af6",
+  "297:d9c4a20c",
+  "297:320d6223",
+  "297:e2134a40",
+]
+`;
+
+exports[`golden frames > streaming @64 1`] = `
+[
+  "478:95b7a3be",
+  "478:d25f539f",
+  "478:e0500d1b",
+  "478:a3ed2388",
+]
+`;
+
+exports[`golden frames > success @20 1`] = `
+[
+  "30:58741b27",
+  "30:f605367c",
+  "30:b3b12bf1",
+  "30:fe7824c6",
+]
+`;
+
+exports[`golden frames > success @32 1`] = `
+[
+  "62:2b019d5b",
+  "62:6b9d4c10",
+  "62:bc17795b",
+  "62:c2a7b2b4",
+]
+`;
+
+exports[`golden frames > success @64 1`] = `
+[
+  "138:e192efa9",
+  "138:ad5d3b28",
+  "138:1f444b4e",
+  "138:baaa3119",
+]
+`;
+
+exports[`golden frames > working @20 1`] = `
+[
+  "39:caf2d453",
+  "39:54b192c7",
+  "39:868d53c9",
+  "39:6d7868fb",
+]
+`;
+
+exports[`golden frames > working @32 1`] = `
+[
+  "100:0ea1ebc5",
+  "100:4755ecbb",
+  "100:1439b71f",
+  "100:7ea4c5f3",
+]
+`;
+
+exports[`golden frames > working @64 1`] = `
+[
+  "516:986965b6",
+  "516:37b656a9",
+  "516:e94cfbea",
+  "516:c81ea2aa",
+]
+`;

@@ -1,18 +1,18 @@
-// Mode key → frame painter. Kept separate from the presets so tree
+// Mode key → geometry builder. Kept separate from the presets so tree
 // shaking can in principle drop unused modes in custom builds.
 
 import type { ModeKey } from '../presets';
-import type { ModeDraw } from './types';
-import { drawGlobe, drawRubik, drawWave } from './lattice';
-import { drawMorph } from './morph';
-import { drawOrbits } from './orbits';
-import { drawRibbon } from './ribbon';
+import { buildGlobe, buildRubik, buildWave } from './lattice';
+import { buildMorph } from './morph';
+import { buildOrbits } from './orbits';
+import { buildRibbon } from './ribbon';
+import type { ModeBuild } from './types';
 
-export const MODE_DRAWS: Record<ModeKey, ModeDraw> = {
-  orbits: drawOrbits,
-  globe: drawGlobe,
-  rubik: drawRubik,
-  wave: drawWave,
-  ribbon: drawRibbon,
-  morph: drawMorph
+export const MODE_BUILDS: Record<ModeKey, ModeBuild> = {
+  orbits: buildOrbits,
+  globe: buildGlobe,
+  rubik: buildRubik,
+  wave: buildWave,
+  ribbon: buildRibbon,
+  morph: buildMorph
 };

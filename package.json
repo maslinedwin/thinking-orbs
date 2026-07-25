@@ -1,7 +1,7 @@
 {
-  "name": "thinking-orbs",
-  "version": "0.1.1",
-  "description": "Dotted thought-orb loading indicators for AI & agent UIs — six tuned states, two sizes, auto dark/light",
+  "name": "@nowah/orbs",
+  "version": "0.1.0",
+  "description": "Dotted thought-orb loading indicators for AI & agent UIs — brand-green ramp, any size, auto dark/light",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.es.js",
@@ -19,6 +19,9 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],
@@ -28,6 +31,10 @@
     "build": "vite build",
     "build:demo": "vite build --config vite.config.demo.ts",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
@@ -35,6 +42,7 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.5",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -46,7 +54,8 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^5.3.0",
     "vite": "^5.0.0",
-    "vite-plugin-dts": "^3.7.0"
+    "vite-plugin-dts": "^3.7.0",
+    "vitest": "^2.1.8"
   },
   "keywords": [
     "react",
@@ -58,16 +67,16 @@
     "llm",
     "canvas",
     "animation",
-    "dark-mode"
+    "dark-mode",
+    "nowah"
   ],
-  "author": "Jakub Antalik",
+  "author": "Nowah",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jakubantalik/thinking-orbs.git"
+    "url": "git+https://github.com/maslinedwin/thinking-orbs.git"
   },
   "bugs": {
-    "url": "https://github.com/Jakubantalik/thinking-orbs/issues"
-  },
-  "homepage": "https://orbs.jakubantalik.com"
+    "url": "https://github.com/maslinedwin/thinking-orbs/issues"
+  }
 }

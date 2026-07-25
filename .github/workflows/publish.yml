@@ -1,8 +1,10 @@
 name: Publish to npm
 
-# Publishes the package on every git tag matching v* (e.g. v0.1.0, v1.0.0).
-# `--provenance` requires `id-token: write` and a registry-url with HTTPS,
-# and produces an attestation linking the tarball to this workflow run.
+# Publishes on every git tag matching v* (e.g. v0.1.0).
+#
+# `NPM_TOKEN` must be an npm Automation token with publish rights to the
+# @nowah scope. (Upstream used a secret named ORBS, which doesn't exist here.)
+# `--provenance` requires id-token: write and an HTTPS registry-url.
 
 on:
   push:
@@ -25,11 +27,14 @@ jobs:
 
       - run: npm ci
 
+      # never publish something that doesn't pass
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
       - run: npm run build
 
-      # Publish; --access public is required for unscoped packages on a
-      # personal account. The ORBS secret must be an npm "Automation" token
-      # with publish rights to the thinking-orbs package.
-      - run: npm publish --provenance --access public
+      # `access: public` comes from publishConfig in package.json, which a
+      # scoped package needs in order to publish publicly
+      - run: npm publish --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.ORBS }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

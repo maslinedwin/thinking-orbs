@@ -1,61 +1,118 @@
-import type { CSSProperties, CanvasHTMLAttributes } from 'react';
+import type { CanvasHTMLAttributes, CSSProperties } from 'react';
+import type { Palette, PaletteName, Ramp } from './color';
 
 /**
- * The six shipped states — each a hand-tuned animation:
+ * The shipped states.
+ *
+ * The six originals — each a hand-tuned animation:
  * - `working`   — particles on tilted orbits
  * - `searching` — a scan meridian sweeps a dotted globe
  * - `solving`   — bands scramble in quarter turns, then click back
  * - `listening` — a waveform rolls through latitude rings
  * - `composing` — an undulating multi-band sash
  * - `shaping`   — a dotted outline morphs circle → triangle → square
+ *
+ * Plus re-tuned variants of the same modes:
+ * - `idle`      — slow low-contrast breathing
+ * - `analyzing` — a tighter, faster scan than `searching`
+ * - `booking`   — fewer, slower, decisive turns; reads as locking in
+ * - `streaming` — continuous directional flow
+ * - `success`   — one-shot; scrambles then clicks back solved (pair with `once`)
  */
-export type OrbState = 'working' | 'searching' | 'solving' | 'listening' | 'composing' | 'shaping';
+export type OrbState =
+  | 'working'
+  | 'searching'
+  | 'solving'
+  | 'listening'
+  | 'composing'
+  | 'shaping'
+  | 'idle'
+  | 'analyzing'
+  | 'booking'
+  | 'streaming'
+  | 'success';
 
 /**
- * Rendered size in CSS pixels. Exactly two tuned presets ship:
- * 64 (chat-avatar scale) and 20 (inline-text scale). Each size carries
- * its own dot count, dot size and speed tuning — they are separate
- * designs, not a scale factor.
+ * Rendered size in CSS pixels. Any value in 12–256 works; 20 and 64 are the
+ * hand-tuned anchors and everything else interpolates between them in log
+ * space. Sizes outside 16–128 render but warn in dev, since the tunings are
+ * extrapolated there.
  */
-export type OrbSize = 64 | 20;
+export type OrbSize = number;
 
 /**
  * Theme mode.
  *
  * - `auto` (default) resolves in three layers, live-updating on change:
  *   1. a `data-theme="dark|light"` attribute or `dark`/`light` class on
- *      any ancestor (the Tailwind / shadcn convention), watched via
- *      `MutationObserver`;
+ *      any ancestor (the Tailwind / shadcn convention), watched via a single
+ *      shared `MutationObserver`;
  *   2. otherwise `matchMedia('(prefers-color-scheme: dark)')`,
  *      subscribed for live OS/browser theme switches;
- *   3. during SSR (no DOM) the first client render resolves the theme
+ *   3. during SSR (no DOM) the theme resolves on the first client render,
  *      before anything is painted — the canvas is client-only.
  * - `dark` / `light` pin the palette regardless of context.
  *
- * Dark renders light ink on the transparent canvas (for dark
- * backgrounds); light renders dark ink (for light backgrounds).
+ * Dark selects the palette's dark ramp (bright ink for dark backgrounds);
+ * light selects its light ramp.
  */
 export type OrbTheme = 'auto' | 'dark' | 'light';
+
+export type { Palette, PaletteName, Ramp, Stop } from './color';
 
 /** Props for the ThinkingOrb React component. */
 export interface ThinkingOrbProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, 'style'> {
   /** Which animation to show. @default 'working' */
   state?: OrbState;
 
-  /** Tuned size preset — 64 or 20 CSS px. @default 64 */
+  /** Size in CSS px (12–256). 20 and 64 are the tuned anchors. @default 64 */
   size?: OrbSize;
 
   /** Theme mode; `auto` detects from the host project. @default 'auto' */
   theme?: OrbTheme;
 
   /**
-   * Animation speed multiplier on top of the preset's baked speed.
+   * Colour ramp. `green` is Nowah's brand jade, `mono` reproduces the original
+   * grayscale, `twoTone` puts green highlights on a neutral base.
+   * @default 'green'
+   */
+  palette?: PaletteName | Palette;
+
+  /**
+   * Custom ramp, overriding `palette`. Stops are indexed by the ink level they
+   * replace: `at: 0` is the darkest ink, `at: 1` the brightest.
+   */
+  ramp?: Ramp;
+
+  /**
+   * Animation speed multiplier on top of the preset's baked speed. Changing it
+   * alters the rate from that moment on; it does not shift the phase.
    * @default 1
    */
   speed?: number;
 
-  /** Freeze the animation on the current frame. @default false */
+  /** Freeze the animation, holding the current frame. @default false */
   paused?: boolean;
+
+  /**
+   * Play one cycle and hold the final frame instead of looping. Only states
+   * that declare a natural cycle (`success`) support this; others ignore it.
+   * @default false
+   */
+  once?: boolean;
+
+  /**
+   * Cross-fade duration in ms when `state` changes. 0 disables (hard cut, the
+   * original behaviour). @default 300
+   */
+  crossfade?: number;
+
+  /**
+   * Coalesce same-colour dots into one path with a single fill. Faster, but
+   * overlapping semi-transparent dots union instead of double-darkening, so
+   * the look changes subtly. @default false
+   */
+  batchPaths?: boolean;
 
   style?: CSSProperties;
 }

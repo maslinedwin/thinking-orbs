@@ -1,9 +1,16 @@
-// Theme resolution: explicit prop → ancestor data-theme/.dark|.light
-// class (watched live) → prefers-color-scheme (subscribed live).
-// SSR-safe: everything runs in effects; the pre-mount fallback is dark.
+// Theme resolution: explicit prop → ancestor data-theme/.dark|.light class
+// (watched live) → prefers-color-scheme (subscribed live).
+//
+// Upstream gave EVERY instance its own document-wide MutationObserver with
+// `subtree: true` — 20 inline orbs meant 20 whole-document observers, each
+// firing on any class toggle anywhere in the app. Here one shared observer and
+// one shared matchMedia listener fan out to all subscribers.
+//
+// Upstream also defaulted `useState(true)`, so on a light-background app the
+// first painted frame was inverted before an effect corrected it. The theme is
+// now resolved synchronously on first client render via useSyncExternalStore.
 
-import type { RefObject } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import type { OrbTheme } from './types';
 
 function ancestorTheme(el: Element | null): boolean | null {
@@ -23,61 +30,106 @@ function systemDark(): boolean {
   return typeof matchMedia === 'undefined' || matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
+// --- one shared listener set for the whole page ------------------------
+
+type Listener = () => void;
+const listeners = new Set<Listener>();
+let mo: MutationObserver | null = null;
+let mq: MediaQueryList | null = null;
+let mqHandler: (() => void) | null = null;
+
+function notify(): void {
+  for (const fn of Array.from(listeners)) fn();
+}
+
+function attach(): void {
+  if (typeof document === 'undefined') return;
+  if (!mo && typeof MutationObserver !== 'undefined') {
+    mo = new MutationObserver(notify);
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme'],
+      subtree: true
+    });
+  }
+  if (!mq && typeof matchMedia !== 'undefined') {
+    mq = matchMedia('(prefers-color-scheme: dark)');
+    mqHandler = notify;
+    mq.addEventListener('change', mqHandler);
+  }
+}
+
+function detach(): void {
+  if (listeners.size > 0) return;
+  mo?.disconnect();
+  mo = null;
+  if (mq && mqHandler) mq.removeEventListener('change', mqHandler);
+  mq = null;
+  mqHandler = null;
+}
+
+function subscribeTheme(fn: Listener): () => void {
+  listeners.add(fn);
+  attach();
+  return () => {
+    listeners.delete(fn);
+    detach();
+  };
+}
+
+const noopUnsub = () => {};
+
 /** Resolve the effective dark/light substrate for a mounted element. */
-export function useResolvedDark(theme: OrbTheme, hostRef: RefObject<Element | null>): boolean {
-  const [dark, setDark] = useState(true);
+export function useResolvedDark(theme: OrbTheme, hostRef: { current: Element | null }): boolean {
+  const subscribe = useCallback(
+    (fn: () => void) => (theme === 'auto' ? subscribeTheme(fn) : noopUnsub),
+    [theme]
+  );
 
-  useEffect(() => {
-    if (theme === 'dark') {
-      setDark(true);
-      return;
-    }
-    if (theme === 'light') {
-      setDark(false);
-      return;
-    }
-
-    const resolve = () => {
-      const fromTree = ancestorTheme(hostRef.current);
-      setDark(fromTree ?? systemDark());
-    };
-    resolve();
-
-    // live OS/browser theme switches
-    const mq = typeof matchMedia !== 'undefined' ? matchMedia('(prefers-color-scheme: dark)') : null;
-    const onMq = () => resolve();
-    mq?.addEventListener('change', onMq);
-
-    // live app-level toggles: watch class/data-theme flips on ancestors
-    let mo: MutationObserver | null = null;
-    if (typeof MutationObserver !== 'undefined' && hostRef.current) {
-      mo = new MutationObserver(resolve);
-      mo.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class', 'data-theme'],
-        subtree: true
-      });
-    }
-
-    return () => {
-      mq?.removeEventListener('change', onMq);
-      mo?.disconnect();
-    };
+  const getSnapshot = useCallback(() => {
+    if (theme === 'dark') return true;
+    if (theme === 'light') return false;
+    if (typeof document === 'undefined') return true;
+    return ancestorTheme(hostRef.current) ?? systemDark();
   }, [theme, hostRef]);
 
-  return dark;
+  // SSR: no DOM to read, so assume dark. The canvas paints client-side only,
+  // and the first client render re-reads the real value before any paint.
+  const getServerSnapshot = useCallback(() => theme !== 'light', [theme]);
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+// --- reduced motion ----------------------------------------------------
+
+const rmListeners = new Set<Listener>();
+let rmMq: MediaQueryList | null = null;
+let rmHandler: (() => void) | null = null;
+
+function subscribeReduced(fn: Listener): () => void {
+  rmListeners.add(fn);
+  if (!rmMq && typeof matchMedia !== 'undefined') {
+    rmMq = matchMedia('(prefers-reduced-motion: reduce)');
+    rmHandler = () => {
+      for (const l of Array.from(rmListeners)) l();
+    };
+    rmMq.addEventListener('change', rmHandler);
+  }
+  return () => {
+    rmListeners.delete(fn);
+    if (rmListeners.size === 0 && rmMq && rmHandler) {
+      rmMq.removeEventListener('change', rmHandler);
+      rmMq = null;
+      rmHandler = null;
+    }
+  };
+}
+
+const reducedSnapshot = () =>
+  typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedServerSnapshot = () => false;
 
 /** Live `prefers-reduced-motion` — reduced users get a static frame. */
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof matchMedia === 'undefined') return;
-    const mq = matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mq.matches);
-    const on = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-  return reduced;
+  return useSyncExternalStore(subscribeReduced, reducedSnapshot, reducedServerSnapshot);
 }

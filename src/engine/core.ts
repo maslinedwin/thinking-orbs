@@ -37,7 +37,13 @@ export function angleDelta(a: number, b: number): number {
 }
 
 /** Shared spin + tilt + orthographic projection. */
-export function makeProj(yaw: number, tilt: number, cx: number, cy: number, scale: number): Projector {
+export function makeProj(
+  yaw: number,
+  tilt: number,
+  cx: number,
+  cy: number,
+  scale: number
+): Projector {
   const st = Math.sin(tilt);
   const ct = Math.cos(tilt);
   const sy = Math.sin(yaw);
@@ -49,25 +55,6 @@ export function makeProj(yaw: number, tilt: number, cx: number, cy: number, scal
     const z2 = y * st + z1 * ct;
     return [cx + x1 * scale, cy - y1 * scale, z2];
   };
-}
-
-/**
- * Painter: z-sort far→near, matte grayscale dots. On dark substrates the
- * ink value is mirrored (1 - white) so near dots read bright — the same
- * depth language on an inverted substrate.
- */
-export function paint(ctx: CanvasRenderingContext2D, dots: Dot[], dark: boolean, rMin = 0.3): void {
-  dots.sort((a, b) => a.z - b.z);
-  for (const d of dots) {
-    const alpha = d.a ?? 1;
-    if (alpha < 0.02) continue;
-    const w = Math.min(1, Math.max(0, d.white));
-    const g = Math.round((dark ? 1 - w : w) * 255);
-    ctx.fillStyle = `rgba(${g},${g},${g},${alpha})`;
-    ctx.beginPath();
-    ctx.arc(d.x, d.y, Math.max(rMin, d.r), 0, Math.PI * 2);
-    ctx.fill();
-  }
 }
 
 /**

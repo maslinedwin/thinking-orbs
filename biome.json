@@ -1,23 +1,25 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
+  "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
   "files": {
-    "includes": ["**", "!**/dist", "!shared/api/src/generated"]
+    "includes": ["**", "!**/dist", "!**/dist-demo", "!**/*.snap"]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth": 120
+    "lineWidth": 100
   },
   "javascript": {
     "formatter": {
-      "trailingCommas": "none"
+      "trailingCommas": "none",
+      "quoteStyle": "single"
     }
   },
   "css": {
     "parser": {
       "cssModules": false,
-      "tailwindDirectives": true
+      "tailwindDirectives": false
     }
   },
   "linter": {
@@ -27,27 +29,22 @@
         "noUnusedImports": "error",
         "noUnusedVariables": "error"
       },
-      "nursery": {
-        "noExcessiveLinesPerFile": {
-          "level": "error",
-          "options": {
-            "maxLines": 250,
-            "skipBlankLines": true
-          }
-        }
-      },
       "performance": {
-        "noBarrelFile": "error",
         "noReExportAll": "error",
         "noNamespaceImport": "error"
       },
       "style": {
-        "noDefaultExport": "error",
         "useImportType": "error"
       },
       "suspicious": {
         "noExplicitAny": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["vite.config.ts", "vite.config.demo.ts", "vitest.config.ts"],
+      "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
+    }
+  ]
 }

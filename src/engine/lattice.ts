@@ -2,8 +2,8 @@
 // wave (listening). All draw a lat/long dot field with mode-specific
 // motion, then hand off to the shared z-sorted painter.
 
-import type { Dot, ModeDraw } from './types';
-import { angleDelta, hashD, makeProj, paint, radiusScale } from './core';
+import { angleDelta, hashD, makeProj, radiusScale } from './core';
+import type { ModeBuild } from './types';
 
 // --- the shared solver heartbeat (rubik) ------------------------------
 // Rapid eased moves scramble, then replay in reverse (palindrome) so
@@ -16,10 +16,15 @@ interface Move {
   ang: number;
 }
 
+// reused across frames; `solveCycle` fully rewrites [0, count)
+const amountScratch: number[] = [];
+
 function solveCycle(time: number, count: number, slotDur: number, rest: number) {
   const cyc = 2 * count * slotDur + rest;
   const tc = time % cyc;
-  const amount = new Array<number>(count).fill(0);
+  const amount = amountScratch;
+  amount.length = count;
+  for (let i = 0; i < count; i++) amount[i] = 0;
   let active = -1;
   if (tc < 2 * count * slotDur) {
     const slot = Math.floor(tc / slotDur);
@@ -73,7 +78,13 @@ function applyMoves(
   return [x, y, z, inActive];
 }
 
+// The move table is a pure function of `count` — upstream rebuilt it every
+// frame (14 objects + 42 hashD() calls per frame, byte-identical each time).
+const movesCache = new Map<number, Move[]>();
+
 function makeMoves(count: number): Move[] {
+  const hit = movesCache.get(count);
+  if (hit) return hit;
   const moves: Move[] = [];
   for (let i = 0; i < count; i++) {
     const axis = Math.min(2, Math.floor(hashD(i, 2.3) * 3)) as 0 | 1 | 2;
@@ -81,12 +92,13 @@ function makeMoves(count: number): Move[] {
     const dir = hashD(i, 7.7) < 0.5 ? 1 : -1;
     moves.push({ axis, lo, hi: lo + 0.5, ang: (dir * Math.PI) / 2 });
   }
+  movesCache.set(count, moves);
   return moves;
 }
 
 // --- Globe: lat/long field, a scan meridian sweeps — searching --------
 
-export const drawGlobe: ModeDraw = (ctx, size, t, dark, o) => {
+export const buildGlobe: ModeBuild = (out, size, t, o) => {
   const spin = 0.5;
   const cx = size / 2;
   const cy = size / 2;
@@ -98,7 +110,6 @@ export const drawGlobe: ModeDraw = (ctx, size, t, dark, o) => {
   const rs = radiusScale(size, o.rsPow ?? 0.6);
   const dimBase = o.dimBase ?? 1;
 
-  const dots: Dot[] = [];
   const latRings = o.latRings ?? 17;
   const lonDensity = o.lonDensity ?? 44;
   for (let li = 0; li <= latRings; li++) {
@@ -113,23 +124,22 @@ export const drawGlobe: ModeDraw = (ctx, size, t, dark, o) => {
       // the scan: a moving meridian read as a size ripple, not a shine
       const d = angleDelta(lon + t * spin, scan);
       const boost = Math.exp(-(d * d) / 0.18) * Math.max(0, z);
-      dots.push({
-        x: px,
-        y: py,
+      out.add(
+        px,
+        py,
         z,
-        r: ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth + (o.rBoost ?? 1) * boost) * rs,
-        white: (o.inkFar ?? 0.62) - (o.inkSpan ?? 0.54) * depth,
+        ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth + (o.rBoost ?? 1) * boost) * rs,
+        (o.inkFar ?? 0.62) - (o.inkSpan ?? 0.54) * depth,
         // dimBase < 1 fades un-scanned dots so the meridian reads clearly
-        a: dimBase + (1 - dimBase) * Math.min(1, boost)
-      });
+        dimBase + (1 - dimBase) * Math.min(1, boost)
+      );
     }
   }
-  paint(ctx, dots, dark, o.rMin);
 };
 
 // --- Rubik: bands twist in quarter turns, scramble → solve — solving --
 
-export const drawRubik: ModeDraw = (ctx, size, t, dark, o) => {
+export const buildRubik: ModeBuild = (out, size, t, o) => {
   const cx = size / 2;
   const cy = size / 2;
   const R = (size / 2) * 0.82;
@@ -139,7 +149,6 @@ export const drawRubik: ModeDraw = (ctx, size, t, dark, o) => {
   const moves = makeMoves(moveCount);
   const sc = solveCycle(t, moveCount, 0.42, 1.2);
 
-  const dots: Dot[] = [];
   const latRings = o.latRings ?? 15;
   const lonDensity = o.lonDensity ?? 40;
   for (let li = 0; li <= latRings; li++) {
@@ -149,25 +158,28 @@ export const drawRubik: ModeDraw = (ctx, size, t, dark, o) => {
     const lonCount = Math.max(1, Math.round(Math.abs(cosLat) * lonDensity));
     for (let lj = 0; lj < lonCount; lj++) {
       const lon = (lj / lonCount) * 2 * Math.PI;
-      const [x, y, z, inActive] = applyMoves([cosLat * Math.cos(lon), sinLat, cosLat * Math.sin(lon)], moves, sc);
+      const [x, y, z, inActive] = applyMoves(
+        [cosLat * Math.cos(lon), sinLat, cosLat * Math.sin(lon)],
+        moves,
+        sc
+      );
       const [px, py, zr] = pt(x, y, z);
       const depth = (zr + 1) / 2;
       // the band being turned inks a touch darker — the "hand"
-      dots.push({
-        x: px,
-        y: py,
-        z: zr,
-        r: ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth + (inActive ? (o.rActive ?? 0.3) : 0)) * rs,
-        white: (o.inkFar ?? 0.62) - (o.inkSpan ?? 0.54) * depth - (inActive ? 0.14 : 0)
-      });
+      out.add(
+        px,
+        py,
+        zr,
+        ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth + (inActive ? (o.rActive ?? 0.3) : 0)) * rs,
+        (o.inkFar ?? 0.62) - (o.inkSpan ?? 0.54) * depth - (inActive ? 0.14 : 0)
+      );
     }
   }
-  paint(ctx, dots, dark, o.rMin);
 };
 
 // --- Wave: a waveform rolls through the rings — listening -------------
 
-export const drawWave: ModeDraw = (ctx, size, t, dark, o) => {
+export const buildWave: ModeBuild = (out, size, t, o) => {
   const cx = size / 2;
   const cy = size / 2;
   // 0.76 base × 1.15 — the undulation pulls the sphere inward, so wave read
@@ -176,7 +188,6 @@ export const drawWave: ModeDraw = (ctx, size, t, dark, o) => {
   const pt = makeProj(t * 0.18, 0.38, cx, cy, 1);
   const rs = radiusScale(size, o.rsPow ?? 0.6);
 
-  const dots: Dot[] = [];
   const rings = o.rings ?? 15;
   const lonDensity = o.lonDensity ?? 40;
   for (let ri = 0; ri <= rings; ri++) {
@@ -192,14 +203,13 @@ export const drawWave: ModeDraw = (ctx, size, t, dark, o) => {
       const [px, py, z] = pt(cosLat * Math.cos(lon) * rr, sinLat * rr, cosLat * Math.sin(lon) * rr);
       const depth = (z / R + 1) / 2;
       const crest = Math.max(0, w);
-      dots.push({
-        x: px,
-        y: py,
+      out.add(
+        px,
+        py,
         z,
-        r: ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth) * (1 + 0.4 * crest) * rs,
-        white: 0.66 - 0.56 * depth - 0.1 * crest
-      });
+        ((o.rBase ?? 0.6) + (o.rDepth ?? 1.7) * depth) * (1 + 0.4 * crest) * rs,
+        0.66 - 0.56 * depth - 0.1 * crest
+      );
     }
   }
-  paint(ctx, dots, dark, o.rMin);
 };

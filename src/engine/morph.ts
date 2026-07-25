@@ -6,8 +6,7 @@
 // every instant of the morph, holds and transitions alike. Plain
 // circle fills only: no canvas/SVG filters, fully cross-browser.
 
-import type { Dot, ModeDraw } from './types';
-import { paint } from './core';
+import type { ModeBuild } from './types';
 
 type Path = (f: number) => [number, number];
 
@@ -68,7 +67,44 @@ const HOLD = 1.4;
 const MORPH = 0.9;
 const SEG = HOLD + MORPH;
 
-export const drawMorph: ModeDraw = (ctx, size, t, dark, o) => {
+// Outline sampling is a pure function of (shape pair, morph amount, spread).
+// Upstream rebuilt a 160-point path plus its arc-length table every frame; the
+// blend only changes when `m` does, so quantising `m` lets consecutive frames
+// reuse the work. 1/512 of a morph is far below a pixel of movement.
+const M = 160;
+const ptsX = new Float64Array(M);
+const ptsY = new Float64Array(M);
+const segLen = new Float64Array(M);
+let cacheKey = '';
+let cacheTotal = 0;
+
+function measure(k: number, m: number, sprd: number, K: number): number {
+  const mq = Math.round(m * 512) / 512;
+  const key = `${k}|${mq}|${sprd}`;
+  if (key === cacheKey) return cacheTotal;
+
+  const pA = CYCLE[k];
+  const pB = CYCLE[(k + 1) % K];
+  for (let i = 0; i < M; i++) {
+    const f = i / M;
+    const a = pA(f);
+    const b = pB(f);
+    ptsX[i] = (a[0] + (b[0] - a[0]) * mq) * sprd;
+    ptsY[i] = (a[1] + (b[1] - a[1]) * mq) * sprd;
+  }
+  let total = 0;
+  for (let i = 0; i < M; i++) {
+    const j = (i + 1) % M;
+    const l = Math.hypot(ptsX[j] - ptsX[i], ptsY[j] - ptsY[i]);
+    segLen[i] = l;
+    total += l;
+  }
+  cacheKey = key;
+  cacheTotal = total;
+  return total;
+}
+
+export const buildMorph: ModeBuild = (out, size, t, o) => {
   const K = CYCLE.length;
   const tc = t % (SEG * K);
   const k = Math.floor(tc / SEG);
@@ -76,26 +112,7 @@ export const drawMorph: ModeDraw = (ctx, size, t, dark, o) => {
   const m = local > HOLD ? smoothE((local - HOLD) / MORPH) : 0;
   const sprd = o.spread ?? 1;
 
-  // blend the two shape PATHS at m, then measure the blended outline
-  const pA = CYCLE[k];
-  const pB = CYCLE[(k + 1) % K];
-  const M = 160;
-  const pts: Array<[number, number]> = [];
-  for (let i = 0; i < M; i++) {
-    const f = i / M;
-    const a = pA(f);
-    const b = pB(f);
-    pts.push([(a[0] + (b[0] - a[0]) * m) * sprd, (a[1] + (b[1] - a[1]) * m) * sprd]);
-  }
-  const L: number[] = [];
-  let total = 0;
-  for (let i = 0; i < M; i++) {
-    const a = pts[i];
-    const b = pts[(i + 1) % M];
-    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    L.push(l);
-    total += l;
-  }
+  const total = measure(k, m, sprd, K);
 
   // dot radius depends ONLY on rDot (the size knob); the count sets the
   // gaps. Formed shapes breathe a little (uniform pulse).
@@ -103,28 +120,20 @@ export const drawMorph: ModeDraw = (ctx, size, t, dark, o) => {
   const re = (o.rDot ?? 0.021) * 1.35 * sprd;
   const pulse = 1 + 0.02 * Math.sin(local * 3.1);
 
-  const dots: Dot[] = [];
   const c2 = size / 2;
+  const r = Math.max(0.35, re * size);
   let seg = 0;
   let acc = 0;
   for (let k2 = 0; k2 < n; k2++) {
     const target = (k2 / n) * total;
-    while (acc + L[seg] < target && seg < M - 1) {
-      acc += L[seg];
+    while (acc + segLen[seg] < target && seg < M - 1) {
+      acc += segLen[seg];
       seg++;
     }
-    const a = pts[seg];
-    const b = pts[(seg + 1) % M];
-    const f = L[seg] ? Math.min(1, (target - acc) / L[seg]) : 0;
-    const x = (a[0] + (b[0] - a[0]) * f) * pulse;
-    const y = (a[1] + (b[1] - a[1]) * f) * pulse;
-    dots.push({
-      x: c2 + x * size,
-      y: c2 + y * size,
-      z: 0,
-      r: Math.max(0.35, re * size),
-      white: 0.1
-    });
+    const j = (seg + 1) % M;
+    const f = segLen[seg] ? Math.min(1, (target - acc) / segLen[seg]) : 0;
+    const x = (ptsX[seg] + (ptsX[j] - ptsX[seg]) * f) * pulse;
+    const y = (ptsY[seg] + (ptsY[j] - ptsY[seg]) * f) * pulse;
+    out.add(c2 + x * size, c2 + y * size, 0, r, 0.1);
   }
-  paint(ctx, dots, dark, o.rMin);
 };

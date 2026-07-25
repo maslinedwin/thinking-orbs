@@ -19,7 +19,15 @@ const ICON_DENSITY_KEYS = ['iconD'] as const;
 
 // Every key that sets a dot's rendered radius — scaling all of them keeps
 // a dot's near/far falloff intact while shrinking or growing the mark.
-const RADIUS_KEYS = ['rBase', 'rDepth', 'rActive', 'rDot', 'ghostR', 'partR', 'partRDepth'] as const;
+const RADIUS_KEYS = [
+  'rBase',
+  'rDepth',
+  'rActive',
+  'rDot',
+  'ghostR',
+  'partR',
+  'partRDepth'
+] as const;
 
 export function scaleCounts(opts: ModeOpts, scale: number): ModeOpts {
   const out: ModeOpts = { ...opts };

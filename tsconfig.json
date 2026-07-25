@@ -12,8 +12,11 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@nowah/orbs": ["./src/index.ts"]
+    }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src", "demo", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist", "dist-demo"]
 }

@@ -1,0 +1,402 @@
+/* The @nowah/orbs workbench. Self-contained styling — deliberately not built
+   on the upstream demo's token soup, so the two can't drift into each other. */
+
+:root {
+  --wb-bg: #0b0d0c;
+  --wb-panel: #131614;
+  --wb-panel-2: #191d1b;
+  --wb-line: rgba(255, 255, 255, 0.08);
+  --wb-text: #eef1ef;
+  --wb-muted: #8b9691;
+  --wb-accent: #1fd08a;
+  --wb-accent-dim: rgba(31, 208, 138, 0.14);
+}
+
+html[data-theme="light"] {
+  --wb-bg: #f4f6f5;
+  --wb-panel: #ffffff;
+  --wb-panel-2: #eef1ef;
+  --wb-line: rgba(0, 0, 0, 0.1);
+  --wb-text: #10130f;
+  --wb-muted: #5d6b64;
+  --wb-accent: #00794e;
+  --wb-accent-dim: rgba(0, 121, 78, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--wb-bg);
+  color: var(--wb-text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wb {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.wb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.wb-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.wb-sub {
+  color: var(--wb-muted);
+  font-size: 12px;
+  margin: 3px 0 0;
+}
+
+.wb-card {
+  background: var(--wb-panel);
+  border: 1px solid var(--wb-line);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.wb-card > h2 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--wb-muted);
+  margin: 0 0 14px;
+}
+
+.wb-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.wb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wb-label {
+  font-size: 11px;
+  color: var(--wb-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.wb-label b {
+  color: var(--wb-text);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* buttons -------------------------------------------------------------- */
+
+.wb-btn {
+  appearance: none;
+  border: 1px solid var(--wb-line);
+  background: var(--wb-panel-2);
+  color: var(--wb-text);
+  border-radius: 8px;
+  height: 30px;
+  padding: 0 11px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 120ms,
+    border-color 120ms,
+    color 120ms;
+}
+
+.wb-btn:hover {
+  border-color: var(--wb-accent);
+}
+
+.wb-btn[aria-pressed="true"],
+.wb-btn.on {
+  background: var(--wb-accent-dim);
+  border-color: var(--wb-accent);
+  color: var(--wb-accent);
+}
+
+.wb-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* sliders -------------------------------------------------------------- */
+
+.wb-range {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 130px;
+  height: 22px;
+  background: transparent;
+  cursor: grab;
+  margin: 0;
+}
+
+.wb-range:active {
+  cursor: grabbing;
+}
+
+.wb-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--wb-panel-2);
+  border: 1px solid var(--wb-line);
+}
+
+.wb-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--wb-panel-2);
+  border: 1px solid var(--wb-line);
+}
+
+.wb-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: var(--wb-accent);
+  border: 0;
+}
+
+.wb-range::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--wb-accent);
+  border: 0;
+}
+
+/* grids ---------------------------------------------------------------- */
+
+.wb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+}
+
+.wb-cell {
+  background: var(--wb-panel-2);
+  border: 1px solid var(--wb-line);
+  border-radius: 10px;
+  padding: 14px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 120px;
+  justify-content: space-between;
+}
+
+.wb-cell.sel {
+  border-color: var(--wb-accent);
+}
+
+.wb-cell-orbs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+}
+
+.wb-cell-name {
+  font-size: 11px;
+  color: var(--wb-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.wb-cell button {
+  all: unset;
+  cursor: pointer;
+  display: contents;
+}
+
+/* stage ---------------------------------------------------------------- */
+
+.wb-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* tracks the orb rather than reserving room for the 256px max — a 64px orb
+     in a 300px box read as a mostly-empty panel */
+  min-height: 132px;
+  background: var(--wb-panel-2);
+  border: 1px solid var(--wb-line);
+  border-radius: 10px;
+  padding: 28px 24px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: min-height 160ms ease-out;
+}
+
+.wb-stage-label {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  font-size: 11px;
+  color: var(--wb-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* pills — the real-world inline context */
+
+.wb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--wb-panel-2);
+  border: 1px solid var(--wb-line);
+  border-radius: 999px;
+  padding: 7px 15px 7px 8px;
+  color: var(--wb-text);
+  font-size: 13px;
+}
+
+.wb-pill.sm {
+  gap: 7px;
+  padding: 4px 11px 4px 5px;
+  font-size: 11px;
+}
+
+/* ramp editor ---------------------------------------------------------- */
+
+.wb-stops {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wb-stop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wb-stop input[type="color"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 34px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--wb-line);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.wb-stop input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.wb-stop input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 4px;
+}
+
+.wb-hex {
+  font-family: "Roboto Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--wb-muted);
+  width: 66px;
+}
+
+.wb-swatch {
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--wb-line);
+  flex: 1;
+  min-width: 60px;
+}
+
+/* readouts ------------------------------------------------------------- */
+
+.wb-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 10px;
+}
+
+.wb-stat {
+  background: var(--wb-panel-2);
+  border: 1px solid var(--wb-line);
+  border-radius: 9px;
+  padding: 9px 11px;
+}
+
+.wb-stat span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wb-muted);
+}
+
+.wb-stat b {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.wb-stat b em {
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  color: var(--wb-muted);
+  margin-left: 4px;
+}
+
+.wb-note {
+  color: var(--wb-muted);
+  font-size: 11px;
+  line-height: 1.55;
+  margin: 12px 0 0;
+}
+
+.wb-code {
+  font-family: "Roboto Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  background: var(--wb-panel-2);
+  border: 1px solid var(--wb-line);
+  border-radius: 9px;
+  padding: 11px 13px;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--wb-text);
+  margin: 0;
+}
+
+.wb-knobs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px 18px;
+}

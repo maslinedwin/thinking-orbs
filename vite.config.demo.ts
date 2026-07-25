@@ -1,25 +1,23 @@
 import { resolve } from 'path';
-import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
   root: resolve(__dirname, 'demo'),
-  plugins: [react(), tailwindcss()],
-  server: { port: 5177 },
+  // The workbench ships its own CSS (demo/workbench.css) rather than Tailwind,
+  // so it can't drift into the library's styling assumptions.
+  plugins: [react()],
+  server: { port: 5177, open: true },
   resolve: {
     alias: {
-      'thinking-orbs': resolve(__dirname, 'src/index.ts')
+      '@nowah/orbs': resolve(__dirname, 'src/index.ts')
     }
   },
   build: {
     outDir: resolve(__dirname, 'dist-demo'),
     emptyOutDir: true,
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'demo/index.html'),
-        simple: resolve(__dirname, 'demo/simple.html')
-      }
+      input: { main: resolve(__dirname, 'demo/index.html') }
     }
   }
 });

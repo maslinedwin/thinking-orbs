@@ -1,60 +1,248 @@
-import React, { useState } from 'react';
-import { CopyButton } from './components/CopyButton';
-import { Examples } from './components/Examples';
-import { Footer } from './components/Footer';
-import { Header } from './components/Header';
-import { Playground } from './components/Playground';
+// The @nowah/orbs workbench.
+//
+// Two jobs: show every state at once so nothing hides, and be the tuning rig
+// where the ramp endpoints and the new states' first-pass numbers get dialled
+// in before they're baked into src/.
+
+import {
+  ORB_STATES,
+  type OrbState,
+  PALETTES,
+  type PaletteName,
+  type Ramp,
+  ThinkingOrb
+} from '@nowah/orbs';
+import { useEffect, useMemo, useState } from 'react';
+import { PerfHud } from './components/PerfHud';
+import { RampEditor } from './components/RampEditor';
+import { TuningPanel } from './components/TuningPanel';
+import { BtnGroup, Slider, Toggle } from './components/ui';
 import { useTheme } from './hooks/useTheme';
 
-const USAGE_SNIPPET = `import { ThinkingOrb } from 'thinking-orbs';\n\n<ThinkingOrb state="listening" size={64} />`;
+const PALETTE_NAMES: PaletteName[] = ['green', 'mono', 'twoTone'];
+const GRID_SIZES = [20, 32, 64] as const;
+const SIZE_PRESETS = [16, 20, 32, 48, 64, 96, 128] as const;
 
 export function App() {
   const [theme, toggleTheme] = useTheme();
-  // Speed lives on App so the Playground slider drives both the playground
-  // preview AND the hero examples above. Stored as 25..300 percent to match
-  // the slider range; consumers convert to a multiplier via `speed / 100`.
-  const [speed, setSpeed] = useState(100);
-  // Dev-only: strip the gray hero surfaces to inspect the orbs in isolation.
-  const [debug, setDebug] = useState(false);
-  // Dev-only: render the small chips as large pills.
-  const [bigChips, setBigChips] = useState(false);
-  // Dev-only: force every pill (hero + chips) to the small chip style.
-  const [smallAll, setSmallAll] = useState(false);
+  const dark = theme === 'dark';
+
+  const [state, setState] = useState<OrbState>('searching');
+  const [size, setSize] = useState(64);
+  const [speed, setSpeed] = useState(1);
+  const [palette, setPalette] = useState<PaletteName>('green');
+  const [paused, setPaused] = useState(false);
+  const [once, setOnce] = useState(false);
+  const [crossfade, setCrossfade] = useState(300);
+  const [batchPaths, setBatchPaths] = useState(false);
+  const [customRamp, setCustomRamp] = useState<Ramp | null>(null);
+  const [autoCycle, setAutoCycle] = useState(false);
+  const [showTuning, setShowTuning] = useState(false);
+
+  // The ramp editor edits whichever substrate is showing.
+  const brandRamp = dark ? PALETTES.green.dark : PALETTES.green.light;
+  const ramp = customRamp ?? undefined;
+  useEffect(() => setCustomRamp(null), [dark]);
+
+  // Auto-cycle exists to exercise the crossfade — state changes constantly in a
+  // real agent UI, and upstream hard-cut between them.
+  useEffect(() => {
+    if (!autoCycle) return;
+    const id = setInterval(() => {
+      setState((s) => ORB_STATES[(ORB_STATES.indexOf(s) + 1) % ORB_STATES.length]);
+    }, 1800);
+    return () => clearInterval(id);
+  }, [autoCycle]);
+
+  const shared = { palette, ramp, speed, paused, crossfade, batchPaths, theme } as const;
+
+  const snippet = useMemo(() => {
+    const props = [`state="${state}"`, `size={${size}}`];
+    if (palette !== 'green') props.push(`palette="${palette}"`);
+    if (speed !== 1) props.push(`speed={${speed}}`);
+    if (once) props.push('once');
+    if (crossfade !== 300) props.push(`crossfade={${crossfade}}`);
+    if (batchPaths) props.push('batchPaths');
+    return `import { ThinkingOrb } from '@nowah/orbs';\n\n<ThinkingOrb ${props.join(' ')} />`;
+  }, [state, size, palette, speed, once, crossfade, batchPaths]);
 
   return (
-    <main className="flex flex-col items-center max-w-[883px] mx-auto w-full px-6 pb-16 max-sm:px-4 max-sm:pb-12">
-      <Header
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        debug={debug}
-        onToggleDebug={() => setDebug((d) => !d)}
-        bigChips={bigChips}
-        onToggleBigChips={() => setBigChips((b) => !b)}
-        smallAll={smallAll}
-        onToggleSmallAll={() => setSmallAll((s) => !s)}
+    <main className="wb">
+      <header className="wb-head">
+        <div>
+          <h1 className="wb-title">@nowah/orbs</h1>
+          <p className="wb-sub">
+            {ORB_STATES.length} states · any size 12–256 · Nowah brand ramp · workbench
+          </p>
+        </div>
+        <div className="wb-btns">
+          <Toggle label={dark ? 'Dark' : 'Light'} on={false} onToggle={toggleTheme} />
+          <Toggle
+            label={paused ? 'Paused' : 'Playing'}
+            on={paused}
+            onToggle={() => setPaused((p) => !p)}
+          />
+          <Toggle label="Auto-cycle" on={autoCycle} onToggle={() => setAutoCycle((a) => !a)} />
+        </div>
+      </header>
+
+      {/* ---------- every state, all at once ---------- */}
+      <section className="wb-card">
+        <h2>All states — click to focus</h2>
+        <div className="wb-grid">
+          {ORB_STATES.map((s) => (
+            <div key={s} className={`wb-cell${s === state ? ' sel' : ''}`}>
+              <button type="button" onClick={() => setState(s)} aria-label={`Focus ${s}`}>
+                <div className="wb-cell-orbs">
+                  {GRID_SIZES.map((sz) => (
+                    <ThinkingOrb key={sz} state={s} size={sz} {...shared} />
+                  ))}
+                </div>
+                <span className="wb-cell-name">{s}</span>
+              </button>
+            </div>
+          ))}
+        </div>
+        <p className="wb-note">
+          Each cell renders 20 / 32 / 64px. 20 and 64 are the hand-tuned anchors; 32 is interpolated
+          between them — upstream typed <code>size</code> as <code>64 | 20</code> and threw a
+          TypeError on anything else.
+        </p>
+      </section>
+
+      {/* ---------- focus stage + controls ---------- */}
+      <section className="wb-card">
+        <h2>Stage</h2>
+        <div className="wb-stage" style={{ minHeight: Math.max(132, size + 72) }}>
+          <span className="wb-stage-label">
+            {state} · {size}px · {palette}
+            {ramp ? ' · custom ramp' : ''}
+          </span>
+          <ThinkingOrb state={state} size={size} once={once} {...shared} />
+        </div>
+
+        <div className="wb-row" style={{ marginTop: 16 }}>
+          <Slider label="size" value={size} min={12} max={256} onChange={setSize} suffix="px" />
+          <Slider
+            label="speed"
+            value={speed}
+            min={0.1}
+            max={3}
+            step={0.01}
+            onChange={setSpeed}
+            suffix="×"
+          />
+          <Slider
+            label="crossfade"
+            value={crossfade}
+            min={0}
+            max={1200}
+            step={25}
+            onChange={setCrossfade}
+            suffix="ms"
+          />
+        </div>
+
+        <div className="wb-row" style={{ marginTop: 14, alignItems: 'flex-end' }}>
+          <BtnGroup label="palette" options={PALETTE_NAMES} value={palette} onChange={setPalette} />
+          <BtnGroup
+            label="size presets"
+            options={SIZE_PRESETS}
+            value={size as (typeof SIZE_PRESETS)[number]}
+            onChange={(n) => setSize(n)}
+          />
+          <div className="wb-field">
+            <span className="wb-label">flags</span>
+            <div className="wb-btns">
+              <Toggle label="once" on={once} onToggle={() => setOnce((o) => !o)} />
+              <Toggle
+                label="batch paths"
+                on={batchPaths}
+                onToggle={() => setBatchPaths((b) => !b)}
+              />
+              <Toggle label="tuning" on={showTuning} onToggle={() => setShowTuning((t) => !t)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="wb-row" style={{ marginTop: 14 }}>
+          <BtnGroup label="state" options={ORB_STATES} value={state} onChange={setState} />
+        </div>
+
+        <pre className="wb-code" style={{ marginTop: 14 }}>
+          {snippet}
+        </pre>
+
+        <p className="wb-note">
+          Drag <b>speed</b>: it changes the rate smoothly. Upstream derived time as{' '}
+          <code>performance.now()/1000 * speed</code>, so nudging 1 → 1.01 after 20 minutes of
+          uptime teleported the animation 23 seconds forward. <b>once</b> only affects states that
+          declare a natural cycle (<code>success</code>); the rest loop.
+        </p>
+      </section>
+
+      {/* ---------- in-context pills ---------- */}
+      <section className="wb-card">
+        <h2>In context</h2>
+        <div className="wb-row" style={{ alignItems: 'center', gap: 14 }}>
+          <span className="wb-pill">
+            <ThinkingOrb state={state} size={34} {...shared} />
+            Searching flights to Lisbon…
+          </span>
+          <span className="wb-pill sm">
+            <ThinkingOrb state={state} size={18} {...shared} />
+            Agent working
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <ThinkingOrb state={state} size={15} {...shared} />
+            <span style={{ fontSize: 13 }}>inline at text scale</span>
+          </span>
+        </div>
+        <p className="wb-note">
+          34px, 18px and 15px are all interpolated sizes. The brightest dots land on{' '}
+          <code>#1FD08A</code>, which Nowah's design tokens document as the AA-passing green for
+          small marks — <code>#00A86B</code> explicitly does not pass at icon size, and these are
+          icon size.
+        </p>
+      </section>
+
+      <PerfHud
+        state={state}
+        size={size}
+        dark={dark}
+        palette={palette}
+        ramp={ramp}
+        batchPaths={batchPaths}
       />
 
-      <Examples speed={speed / 100} debug={debug} bigChips={bigChips} smallAll={smallAll} />
+      <RampEditor
+        ramp={customRamp ?? brandRamp}
+        dark={dark}
+        onChange={setCustomRamp}
+        onReset={() => setCustomRamp(null)}
+      />
 
-      <section className="w-full mb-6" aria-label="Installation">
-        <h2 className="text-base font-normal leading-[34px] text-(--section-title-color) mb-1">Installation</h2>
-        <div className="flex items-center h-10 bg-(--code-bg) rounded-[10px] py-0.5 pr-10 pl-3 overflow-hidden relative">
-          <code className="font-[Roboto_Mono,monospace] text-sm leading-[22px] text-(--code-text) whitespace-pre overflow-x-auto min-w-0 flex-1">npm install thinking-orbs</code>
-          <CopyButton getText={() => 'npm install thinking-orbs'} />
-        </div>
-      </section>
+      {showTuning ? (
+        <TuningPanel
+          state={state}
+          size={size}
+          dark={dark}
+          palette={palette}
+          ramp={ramp}
+          paused={paused}
+        />
+      ) : null}
 
-      <section className="w-full mb-6" aria-label="Usage">
-        <h2 className="text-base font-normal leading-[34px] text-(--section-title-muted) mb-1">Usage</h2>
-        <div className="flex items-start h-auto bg-(--code-bg) rounded-[10px] py-1.5 pr-10 pl-3 overflow-hidden relative">
-          <code className="font-[Roboto_Mono,monospace] text-sm leading-[22px] text-(--code-text) whitespace-pre overflow-x-auto min-w-0 flex-1">{USAGE_SNIPPET}</code>
-          <CopyButton getText={() => USAGE_SNIPPET} />
-        </div>
-      </section>
-
-      <Playground speed={speed} onSpeedChange={setSpeed} />
-
-      <Footer />
+      <footer className="wb-sub" style={{ textAlign: 'center', marginTop: 8 }}>
+        Fork of{' '}
+        <a
+          href="https://github.com/Jakubantalik/thinking-orbs"
+          style={{ color: 'var(--wb-accent)' }}
+        >
+          thinking-orbs
+        </a>{' '}
+        by Jakub Antalik · MIT
+      </footer>
     </main>
   );
 }
