@@ -155,6 +155,51 @@ than double-darken, so the look changes subtly. Off by default; compare it in th
 - Plain 2D canvas arcs only: no `ctx.filter`, no SVG filters, no WebGL. Device-pixel-ratio capped at
   2, and re-read when the window moves between displays.
 
+## React Native
+
+```tsx
+import { ThinkingOrb } from '@nowah/orbs/native';
+
+<ThinkingOrb state="searching" size={64} progress={0.4} />
+```
+
+Requires `@shopify/react-native-skia` (an optional peer). The engine, all 29 presets, size
+interpolation and the colour ramps are **shared with the web build** — only the renderer
+(`render/skia.ts`) and the component shell differ, so the native entry adds ~2.7 kB gzip on top of
+the shared engine.
+
+Differences from the web component, all deliberate:
+
+| | Web | Native |
+|---|---|---|
+| Renderer | 2D canvas | Skia `createPicture` + `redraw()` |
+| `theme="auto"` | ancestor `data-theme` → `prefers-color-scheme` | system colour scheme only |
+| Backgrounded | `visibilitychange` | `AppState` |
+| Offscreen | paused via `IntersectionObserver` | **not paused** — pass `paused` yourself in long lists |
+| DPR | backing store sized to DPR | Skia works in dp and scales itself |
+
+`auto` cannot detect a light-themed screen inside a dark app the way the web version can, because
+there's no ancestor to walk. Pass `theme` explicitly if a screen needs to differ.
+
+### Consuming it from the Nowah app
+
+Linked rather than published:
+
+```json
+"@nowah/orbs": "file:../nowah-orbs"
+```
+
+That needs two things in `metro.config.js`, both already done in `nowah/`:
+
+1. `../nowah-orbs` in `watchFolders` — the real path is outside the project root, and Metro won't
+   serve files it isn't watching.
+2. `react`, `react-dom`, `react-native` and `@shopify/react-native-skia` forced to resolve to the
+   app's copies. The linked package has its own `node_modules` (installed for typechecking) and
+   Metro's hierarchical lookup will otherwise load a second React — which surfaces as
+   "Invalid hook call".
+
+Run `npm run build` in `nowah-orbs` after changing the library; the app consumes `dist/`.
+
 ## Power-user surface
 
 The engine is renderer-agnostic — modes emit geometry, not pixels — so you can drive your own canvas,
