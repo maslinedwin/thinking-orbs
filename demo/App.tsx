@@ -21,7 +21,7 @@ import { TuningPanel } from './components/TuningPanel';
 import { BtnGroup, Slider, Toggle } from './components/ui';
 import { useTheme } from './hooks/useTheme';
 
-const PALETTE_NAMES: PaletteName[] = ['green', 'nebula', 'mono', 'twoTone'];
+const PALETTE_NAMES: PaletteName[] = ['nebula', 'green', 'mono', 'twoTone'];
 const GRID_SIZES = [20, 32, 64] as const;
 const SIZE_PRESETS = [16, 20, 32, 48, 64, 96, 128] as const;
 
@@ -32,7 +32,7 @@ export function App() {
   const [state, setState] = useState<OrbState>('searching');
   const [size, setSize] = useState(64);
   const [speed, setSpeed] = useState(1);
-  const [palette, setPalette] = useState<PaletteName>('green');
+  const [palette, setPalette] = useState<PaletteName>('nebula');
   const [paused, setPaused] = useState(false);
   const [once, setOnce] = useState(false);
   const [crossfade, setCrossfade] = useState(300);
@@ -137,7 +137,12 @@ export function App() {
           />
         </div>
 
-        <div className="wb-row" style={{ marginTop: 16 }}>
+        {/* Palette first — Nebula is the lead button */}
+        <div className="wb-row" style={{ marginTop: 16, alignItems: 'flex-end' }}>
+          <BtnGroup label="palette" options={PALETTE_NAMES} value={palette} onChange={setPalette} />
+        </div>
+
+        <div className="wb-row" style={{ marginTop: 14 }}>
           <Slider label="size" value={size} min={12} max={256} onChange={setSize} suffix="px" />
           <Slider
             label="speed"
@@ -177,7 +182,6 @@ export function App() {
         </div>
 
         <div className="wb-row" style={{ marginTop: 14, alignItems: 'flex-end' }}>
-          <BtnGroup label="palette" options={PALETTE_NAMES} value={palette} onChange={setPalette} />
           <BtnGroup
             label="size presets"
             options={SIZE_PRESETS}
