@@ -32,7 +32,10 @@ export function App() {
   const [state, setState] = useState<OrbState>('searching');
   const [size, setSize] = useState(64);
   const [speed, setSpeed] = useState(1);
-  const [palette, setPalette] = useState<PaletteName>('nebula');
+  /** When on (default), force Nebula brand pink; when off, use basePalette. */
+  const [nebulaOn, setNebulaOn] = useState(true);
+  const [basePalette, setBasePalette] = useState<PaletteName>('green');
+  const palette: PaletteName = nebulaOn ? 'nebula' : basePalette;
   const [paused, setPaused] = useState(false);
   const [once, setOnce] = useState(false);
   const [crossfade, setCrossfade] = useState(300);
@@ -47,9 +50,7 @@ export function App() {
   const canProgress = PROGRESS_MODES.has(resolvePreset(state, size).mode);
 
   // The ramp editor edits whichever substrate is showing.
-  const brandRamp = dark
-    ? PALETTES[palette === 'mono' || palette === 'twoTone' ? 'green' : palette].dark
-    : PALETTES[palette === 'mono' || palette === 'twoTone' ? 'green' : palette].light;
+  const brandRamp = dark ? PALETTES[palette].dark : PALETTES[palette].light;
   const ramp = customRamp ?? undefined;
   useEffect(() => setCustomRamp(null), [dark]);
 
@@ -82,10 +83,20 @@ export function App() {
         <div>
           <h1 className="wb-title">@nowah/orbs</h1>
           <p className="wb-sub">
-            {ORB_STATES.length} states · any size 12–256 · Nowah brand ramp · workbench
+            {ORB_STATES.length} states · any size 12–256 ·{' '}
+            {nebulaOn ? 'Nebula pink ramp' : 'Nowah brand ramp'} · workbench
           </p>
         </div>
         <div className="wb-btns">
+          <Toggle
+            label="Nebula"
+            accent="nebula"
+            on={nebulaOn}
+            onToggle={() => {
+              setNebulaOn((n) => !n);
+              setCustomRamp(null);
+            }}
+          />
           <Toggle label={dark ? 'Dark' : 'Light'} on={false} onToggle={toggleTheme} />
           <Toggle
             label={paused ? 'Paused' : 'Playing'}
@@ -137,12 +148,7 @@ export function App() {
           />
         </div>
 
-        {/* Palette first — Nebula is the lead button */}
-        <div className="wb-row" style={{ marginTop: 16, alignItems: 'flex-end' }}>
-          <BtnGroup label="palette" options={PALETTE_NAMES} value={palette} onChange={setPalette} />
-        </div>
-
-        <div className="wb-row" style={{ marginTop: 14 }}>
+        <div className="wb-row" style={{ marginTop: 16 }}>
           <Slider label="size" value={size} min={12} max={256} onChange={setSize} suffix="px" />
           <Slider
             label="speed"
@@ -182,6 +188,17 @@ export function App() {
         </div>
 
         <div className="wb-row" style={{ marginTop: 14, alignItems: 'flex-end' }}>
+          {!nebulaOn ? (
+            <BtnGroup
+              label="palette"
+              options={PALETTE_NAMES.filter((p) => p !== 'nebula')}
+              value={basePalette === 'nebula' ? 'green' : basePalette}
+              onChange={(p) => {
+                setBasePalette(p);
+                setCustomRamp(null);
+              }}
+            />
+          ) : null}
           <BtnGroup
             label="size presets"
             options={SIZE_PRESETS}

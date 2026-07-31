@@ -49,14 +49,22 @@ export function Slider({
 export function Toggle({
   label,
   on,
-  onToggle
+  onToggle,
+  accent
 }: {
   label: string;
   on: boolean;
   onToggle: () => void;
+  /** Optional accent when pressed — e.g. `nebula` for brand pink. */
+  accent?: 'nebula';
 }) {
   return (
-    <button className="wb-btn" type="button" aria-pressed={on} onClick={onToggle}>
+    <button
+      className={`wb-btn${accent === 'nebula' ? ' wb-btn-nebula' : ''}`}
+      type="button"
+      aria-pressed={on}
+      onClick={onToggle}
+    >
       {label}
     </button>
   );

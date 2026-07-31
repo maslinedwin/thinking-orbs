@@ -141,6 +141,16 @@ body {
   color: var(--wb-accent);
 }
 
+/* Nebula brand toggle — hot pink when on */
+.wb-btn.wb-btn-nebula:hover {
+  border-color: #f312a4;
+}
+.wb-btn.wb-btn-nebula[aria-pressed="true"] {
+  background: rgba(243, 18, 164, 0.16);
+  border-color: #f312a4;
+  color: #ff5cc8;
+}
+
 .wb-btns {
   display: flex;
   flex-wrap: wrap;
