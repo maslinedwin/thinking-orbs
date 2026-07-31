@@ -47,7 +47,7 @@ export interface Palette {
   space?: RampSpace;
 }
 
-export type PaletteName = 'green' | 'mono' | 'twoTone';
+export type PaletteName = 'green' | 'mono' | 'twoTone' | 'nebula';
 
 // --- Nowah brand ramps -------------------------------------------------
 // Anchored on nowah/constants/design-tokens.ts:16-19. The brightest (most
@@ -68,6 +68,31 @@ const GREEN: Palette = {
     { at: 0.35, hex: '#00794E' },
     { at: 0.6, hex: '#00A86B' },
     { at: 1.0, hex: '#B8E8D2' }
+  ]
+};
+
+// --- Nebula brand ramps ------------------------------------------------
+// From https://www.nebula.gg brand assets:
+//   - Icon glyph fill: #f312a4 (hot magenta / pink) — primary brand ink
+//   - Site accent purple-500: #ac4bff (used on marketing UI, secondary)
+//   - Icon plate: #faf5ff (soft lilac wash)
+// Dark ramp: deep plum → brand pink → hot highlight.
+// Light ramp: saturated pink is the dark (salient) ink on pale lilac grounds.
+
+const NEBULA: Palette = {
+  dark: [
+    { at: 0.0, hex: '#2A061C' }, // deep plum, sits just off a near-black bg
+    { at: 0.28, hex: '#8B0A5E' }, // wine / mid magenta
+    { at: 0.55, hex: '#F312A4' }, // brand pink — icon glyph
+    { at: 0.78, hex: '#FF5CC8' }, // hot pink highlight
+    { at: 1.0, hex: '#FFB8E8' } // soft lilac tip
+  ],
+  light: [
+    { at: 0.0, hex: '#9B0870' }, // darkest ink = most salient on light
+    { at: 0.35, hex: '#D10E90' },
+    { at: 0.6, hex: '#F312A4' }, // brand pink
+    { at: 0.85, hex: '#AC4BFF' }, // marketing purple accent
+    { at: 1.0, hex: '#F5D0FF' } // pale lilac (near #faf5ff plate)
   ]
 };
 
@@ -103,7 +128,8 @@ const TWO_TONE: Palette = {
 export const PALETTES: Record<PaletteName, Palette> = {
   green: GREEN,
   mono: MONO,
-  twoTone: TWO_TONE
+  twoTone: TWO_TONE,
+  nebula: NEBULA
 };
 
 // --- sRGB <-> OkLab ----------------------------------------------------

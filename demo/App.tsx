@@ -21,7 +21,7 @@ import { TuningPanel } from './components/TuningPanel';
 import { BtnGroup, Slider, Toggle } from './components/ui';
 import { useTheme } from './hooks/useTheme';
 
-const PALETTE_NAMES: PaletteName[] = ['green', 'mono', 'twoTone'];
+const PALETTE_NAMES: PaletteName[] = ['green', 'nebula', 'mono', 'twoTone'];
 const GRID_SIZES = [20, 32, 64] as const;
 const SIZE_PRESETS = [16, 20, 32, 48, 64, 96, 128] as const;
 
@@ -47,7 +47,9 @@ export function App() {
   const canProgress = PROGRESS_MODES.has(resolvePreset(state, size).mode);
 
   // The ramp editor edits whichever substrate is showing.
-  const brandRamp = dark ? PALETTES.green.dark : PALETTES.green.light;
+  const brandRamp = dark
+    ? PALETTES[palette === 'mono' || palette === 'twoTone' ? 'green' : palette].dark
+    : PALETTES[palette === 'mono' || palette === 'twoTone' ? 'green' : palette].light;
   const ramp = customRamp ?? undefined;
   useEffect(() => setCustomRamp(null), [dark]);
 
@@ -230,10 +232,9 @@ export function App() {
           </span>
         </div>
         <p className="wb-note">
-          34px, 18px and 15px are all interpolated sizes. The brightest dots land on{' '}
-          <code>#1FD08A</code>, which Nowah's design tokens document as the AA-passing green for
-          small marks — <code>#00A86B</code> explicitly does not pass at icon size, and these are
-          icon size.
+          34px, 18px and 15px are all interpolated sizes. Nowah green peaks at <code>#1FD08A</code>;
+          Nebula pink peaks around brand <code>#F312A4</code> (from the nebula.gg icon). Switch the
+          palette control above to compare.
         </p>
       </section>
 

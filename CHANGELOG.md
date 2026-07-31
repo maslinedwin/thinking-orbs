@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`palette="nebula"`** — Nebula brand magenta/pink ramp. Anchored on the official
+  [nebula.gg](https://www.nebula.gg) icon glyph **`#f312a4`**, with deep plum through hot pink
+  on dark substrates and a soft lilac tip; light mode also touches marketing purple `#ac4bff`.
+
 ## 0.1.0 — fork of `thinking-orbs@0.1.1`
 
 Forked from [Jakubantalik/thinking-orbs](https://github.com/Jakubantalik/thinking-orbs) and renamed

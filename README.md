@@ -62,17 +62,21 @@ outside 16–128 render but warn in dev, since the tunings are extrapolated ther
 
 ## Colour
 
-Three palettes ship. `green` is the default.
+Four palettes ship. `green` is the default.
 
 ```tsx
 <ThinkingOrb palette="green" />    {/* Nowah brand jade ramp */}
+<ThinkingOrb palette="nebula" />   {/* Nebula brand magenta / pink ramp */}
 <ThinkingOrb palette="mono" />     {/* the original grayscale */}
 <ThinkingOrb palette="twoTone" />  {/* green highlights on a neutral base */}
 ```
 
 The orb's visual language is a **lightness ramp encoding depth**, so a single flat colour would
-collapse depth from two channels to one and read flat. Instead the ink level indexes a ramp, built
-from Nowah's design tokens:
+collapse depth from two channels to one and read flat. Instead the ink level indexes a ramp.
+
+### Nowah (`green`)
+
+Built from Nowah design tokens:
 
 | ink | hex | token |
 |---|---|---|
@@ -85,6 +89,26 @@ from Nowah's design tokens:
 The brightest — most salient — dots land on `#1FD08A`, which Nowah's tokens document as the
 AA-passing green for small marks; `#00A86B` explicitly does not pass at icon size, and the 20px
 inline orb *is* icon size.
+
+### Nebula (`nebula`)
+
+Anchored on [nebula.gg](https://www.nebula.gg) brand assets — the icon glyph fill is **`#f312a4`**
+(hot magenta/pink); marketing UI also uses purple `#ac4bff` as a secondary accent (light-mode tip).
+
+| ink (dark) | hex | note |
+|---|---|---|
+| 0.00 | `#2A061C` | deep plum |
+| 0.28 | `#8B0A5E` | wine magenta |
+| 0.55 | `#F312A4` | **brand pink** (icon) |
+| 0.78 | `#FF5CC8` | hot highlight |
+| 1.00 | `#FFB8E8` | soft lilac tip |
+
+```tsx
+import { ThinkingOrb } from '@nowah/orbs';
+
+// Nebula product UI
+<ThinkingOrb state="working" palette="nebula" size={64} />
+```
 
 Ramps interpolate in **OkLab**, since lerping saturated greens in sRGB drags midpoints through a
 muddy olive. Interpolation happens once at build time into a lookup table, so the canvas only ever

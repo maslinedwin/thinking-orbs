@@ -23,7 +23,7 @@ describe('ramp endpoints', () => {
   });
 
   it('is monotonically increasing in luminance', () => {
-    for (const name of ['green', 'mono', 'twoTone'] as const) {
+    for (const name of ['green', 'mono', 'twoTone', 'nebula'] as const) {
       for (const dark of [true, false]) {
         const lut = getLut(name, dark);
         let prev = -1;
@@ -93,6 +93,28 @@ describe('green ramp is actually green', () => {
       const [r, g] = s.slice(5, -1).split(',').map(Number);
       expect(g).toBeGreaterThanOrEqual(r);
     }
+  });
+});
+
+describe('nebula ramp is actually pink/magenta', () => {
+  it('keeps red the dominant channel across the dark ramp (hot pink brand)', () => {
+    const lut = getLut('nebula', true);
+    for (let i = 8; i < L_LEVELS; i++) {
+      const [r, g, b] = rgbAt(lut, i);
+      // Brand pink #f312a4 is R-dominant; mid–high ink should stay that way
+      expect(r, `@${i}`).toBeGreaterThan(g);
+      expect(r, `@${i}`).toBeGreaterThanOrEqual(b - 8);
+    }
+  });
+
+  it('passes near the brand pink #f312a4 mid-ramp', () => {
+    const lut = getLut('nebula', true);
+    // #F312A4 sits at at:0.55
+    const i = Math.round(0.55 * (L_LEVELS - 1));
+    const [r, g, b] = rgbAt(lut, i);
+    expect(Math.abs(r - 0xf3)).toBeLessThanOrEqual(10);
+    expect(Math.abs(g - 0x12)).toBeLessThanOrEqual(14);
+    expect(Math.abs(b - 0xa4)).toBeLessThanOrEqual(14);
   });
 });
 

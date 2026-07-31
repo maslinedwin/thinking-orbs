@@ -114,8 +114,9 @@ export interface ThinkingOrbProps extends Omit<CanvasHTMLAttributes<HTMLCanvasEl
   theme?: OrbTheme;
 
   /**
-   * Colour ramp. `green` is Nowah's brand jade, `mono` reproduces the original
-   * grayscale, `twoTone` puts green highlights on a neutral base.
+   * Colour ramp. `green` is Nowah's brand jade, `nebula` is Nebula's brand
+   * magenta/pink (`#f312a4`), `mono` reproduces the original grayscale,
+   * `twoTone` puts green highlights on a neutral base.
    * @default 'green'
    */
   palette?: PaletteName | Palette;
